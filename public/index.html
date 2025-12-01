@@ -4,29 +4,22 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>AI 解析助手</title>
-  <meta name="description" content="上传图片和文字进行 AI 解析" />
+  <meta name="description" content="上传图片与文字，选择场景并调用后端接口进行解析" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <style>
-    :root {
-      --primary-gradient-start: #4F7BFF;
-      --primary-gradient-end: #6DD5FA;
-    }
+    :root { --primary-gradient-start: #4F7BFF; --primary-gradient-end: #6DD5FA; }
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
-      background: radial-gradient(circle at 20% 20%, rgba(79, 123, 255, 0.12), transparent 35%), radial-gradient(circle at 80% 10%, rgba(109, 213, 250, 0.16), transparent 30%), #F7F9FC;
+      background: radial-gradient(circle at 20% 20%, rgba(79,123,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(109,213,250,0.16), transparent 30%),
+                  #F7F9FC;
       color: #0F172A;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in-up {
-      animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .custom-scrollbar::-webkit-scrollbar { width: 6px; }
     .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
     .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E5E7EB; border-radius: 20px; }
@@ -53,7 +46,7 @@
         <div class="space-y-1">
           <p class="text-sm text-blue-500 font-semibold tracking-wide uppercase">AI Analysis</p>
           <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">AI 解析助手</h1>
-          <p class="text-gray-500">上传图片与文字，调用后端接口完成智能解析并渲染为 Markdown。</p>
+          <p class="text-gray-500">选择场景（卡牌分析或朋友圈文案），上传图片与文字，调用后端接口并渲染 Markdown 结果。</p>
         </div>
         <span id="statusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-sm">
           待开始
@@ -62,6 +55,15 @@
 
       <div class="grid lg:grid-cols-2 gap-6 lg:gap-8">
         <section class="bg-white/90 glass rounded-3xl shadow-sm border border-gray-100/60 p-6 lg:p-8 space-y-6">
+          <div class="space-y-2">
+            <label for="scenarioSelect" class="block text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">场景选择</label>
+            <select id="scenarioSelect" class="w-full rounded-2xl border border-gray-200 bg-white/80 px-3 py-2 text-sm text-gray-700 focus:ring-2 focus:ring-blue-200 focus:border-blue-300">
+              <option value="card">性格色彩卡牌分析（默认）</option>
+              <option value="moment">朋友圈文案优化</option>
+            </select>
+            <p class="text-xs text-gray-500">系统会根据选择读取对应的 prompt 文件并附加到请求。</p>
+          </div>
+
           <div class="space-y-3">
             <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Step 1</p>
             <h2 class="text-xl font-semibold text-gray-900">上传图片</h2>
@@ -101,7 +103,7 @@
             <p class="text-sm text-gray-500">文字会与图片一起发送到后端接口，帮助模型理解上下文。</p>
           </div>
           <div class="relative">
-            <textarea id="textInput" rows="4" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400 custom-scrollbar" placeholder="例如：帮我识别这张卡牌的颜色、位置和分值"></textarea>
+            <textarea id="textInput" rows="4" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400 custom-scrollbar" placeholder="例如：帮我识别卡牌颜色/分值，或优化朋友圈文案"></textarea>
             <div class="absolute right-3 bottom-3 text-xs text-gray-400" id="charCount">0/500</div>
           </div>
 
@@ -133,7 +135,7 @@
               <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-50 to-blue-100 flex items-center justify-center">
                 <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18" /></svg>
               </div>
-              <p class="text-sm">等待解析结果，上传图片并点击“开始 AI 解析”</p>
+              <p class="text-sm">等待解析结果，上传图片并点击“开始 AI 解析”。</p>
             </div>
             <article id="resultContent" class="markdown-body prose max-w-none hidden text-gray-800"></article>
             <div id="imageAnalysis" class="text-xs text-gray-500 hidden"></div>
@@ -156,7 +158,7 @@
         <div class="w-12 h-12 mx-auto rounded-full bg-blue-50 flex items-center justify-center">
           <svg class="w-6 h-6 text-blue-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v2m0 12v2m8-8h-2M6 12H4m12.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636" /></svg>
         </div>
-        <p class="text-lg font-semibold text-gray-900">分析中...</p>
+        <p class="text-lg font-semibold text-gray-900">解析中...</p>
         <p class="text-sm text-gray-500">请稍等，完成后会自动关闭提示。</p>
       </div>
     </div>
@@ -212,12 +214,17 @@
     const analysisToggle = document.getElementById('analysisToggle');
     const processingModal = document.getElementById('processingModal');
     const analyzeLabel = document.getElementById('analyzeLabel');
+    const scenarioSelect = document.getElementById('scenarioSelect');
 
     let selectedFile = null;
     let base64Cache = '';
     let showImageAnalysis = false;
+    const promptCache = {};
+    const promptFileMap = {
+      card: '/prompts/CARD_SCENARIO.txt',
+      moment: '/prompts/MOMENT_SCENARIO.txt'
+    };
 
-    // Update badge to reflect current status.
     function setStatus(text, color = 'blue') {
       statusBadge.textContent = text;
       const colorMap = {
@@ -266,11 +273,30 @@
       });
     }
 
+    async function loadPromptByScenario(scenario) {
+      if (promptCache[scenario] !== undefined) return promptCache[scenario];
+      const filePath = promptFileMap[scenario];
+      if (!filePath) {
+        promptCache[scenario] = '';
+        return '';
+      }
+      try {
+        const res = await fetch(filePath);
+        if (!res.ok) throw new Error(`Load prompt failed: ${res.status}`);
+        const text = await res.text();
+        promptCache[scenario] = text.trim();
+      } catch (err) {
+        console.warn('Load prompt failed, fallback to empty prompt', err);
+        promptCache[scenario] = '';
+      }
+      return promptCache[scenario];
+    }
+
     async function callApi(payload) {
       const endpoint = payload.imageBase64 ? '/api/chat/image' : '/api/chat/text';
       const body = payload.imageBase64
-        ? { text: payload.text || '', imageBase64: payload.imageBase64 }
-        : { text: payload.text || '' };
+        ? { text: payload.text || '', imageBase64: payload.imageBase64, scenario: payload.scenario }
+        : { text: payload.text || '', scenario: payload.scenario };
 
       const res = await fetch(endpoint, {
         method: 'POST',
@@ -309,65 +335,6 @@
       analyzeBtn.disabled = true;
       analyzeBtn.classList.add('opacity-90', 'cursor-not-allowed');
       setStatus('解析中', 'gray');
-
-      try {
-        if (!base64Cache && selectedFile) {
-          base64Cache = await fileToBase64(selectedFile);
-        }
-        const payload = {
-          imageBase64: base64Cache,
-          text: textInput.value.trim()
-        };
-        const res = await callApi(payload);
-        renderResult(res.markdown, res.imageAnalysis);
-        setStatus('解析完成', 'green');
-
-        exportPreview.src = previewImage.src;
-        exportText.textContent = payload.text || '无附加说明';
-        exportMarkdown.innerHTML = marked.parse(res.markdown || '');
-        exportDate.textContent = new Date().toLocaleDateString();
-      } catch (err) {
-        console.error(err);
-        setStatus('解析失败', 'red');
-        resultContent.innerHTML = `<p class="text-rose-500 text-sm">Error: ${err.message}</p>`;
-        resultContent.classList.remove('hidden');
-        resultPlaceholder.classList.add('hidden');
-        imageAnalysisEl.classList.add('hidden');
-      } finally {
-        analyzeBtn.disabled = false;
-        analyzeBtn.classList.remove('opacity-90', 'cursor-not-allowed');
-      }
-    }
-
-    async function handleExport() {
-      if (!previewImage.src || resultContent.classList.contains('hidden')) {
-        alert('暂无可导出的内容。');
-        return;
-      }
-      try {
-        exportBtn.disabled = true;
-        const canvas = await html2canvas(exportContent, { useCORS: true, scale: 2, backgroundColor: '#ffffff' });
-        const dataUrl = canvas.toDataURL('image/png');
-        const link = document.createElement('a');
-        link.download = `AI_Analysis_${Date.now()}.png`;
-        link.href = dataUrl;
-        link.click();
-      } catch (err) {
-        console.error('Export failed', err);
-        alert('导出图片失败：' + err.message);
-      } finally {
-        exportBtn.disabled = false;
-      }
-    }
-
-    async function handleAnalyze() {
-      if (!selectedFile) {
-        alert('请先选择一张图片后再解析。');
-        return;
-      }
-      analyzeBtn.disabled = true;
-      analyzeBtn.classList.add('opacity-90', 'cursor-not-allowed');
-      setStatus('解析中', 'gray');
       setProcessing(true);
       analyzeLabel.innerHTML = `
         <svg class="w-5 h-5 text-blue-100 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v2m0 12v2m8-8h-2M6 12H4m12.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636" /></svg>
@@ -378,16 +345,24 @@
         if (!base64Cache && selectedFile) {
           base64Cache = await fileToBase64(selectedFile);
         }
+        const scenario = scenarioSelect.value;
+        const promptText = await loadPromptByScenario(scenario);
+        const baseText = textInput.value.trim();
+        const finalText = promptText
+          ? `${promptText}\n\n用户输入：${baseText || '（无文字补充）'}`
+          : baseText;
+
         const payload = {
           imageBase64: base64Cache,
-          text: textInput.value.trim()
+          text: finalText,
+          scenario
         };
         const res = await callApi(payload);
         renderResult(res.markdown, res.imageAnalysis);
         setStatus('解析完成', 'green');
 
         exportPreview.src = previewImage.src;
-        exportText.textContent = payload.text || '无附加说明';
+        exportText.textContent = baseText || '无附加说明';
         exportMarkdown.innerHTML = marked.parse(res.markdown || '');
         exportDate.textContent = new Date().toLocaleDateString();
       } catch (err) {
@@ -408,6 +383,27 @@
       }
     }
 
+    async function handleExport() {
+      if (!previewImage.src || resultContent.classList.contains('hidden')) {
+        alert('暂无可导出的内容。');
+        return;
+      }
+      try {
+        exportBtn.disabled = true;
+        const canvas = await html2canvas(exportContent, { useCORS: true, scale: 2, backgroundColor: '#ffffff' });
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `AI_Analysis_${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+      } catch (err) {
+        console.error('Export failed', err);
+        alert('导出图片失败: ' + err.message);
+      } finally {
+        exportBtn.disabled = false;
+      }
+    }
+
     dropzone.addEventListener('click', () => fileInput.click());
     dropzone.addEventListener('dragover', (e) => {
       e.preventDefault();
@@ -421,9 +417,7 @@
       e.preventDefault();
       dropzone.classList.remove('border-blue-400', 'bg-blue-50/40');
       const file = e.dataTransfer?.files?.[0];
-      if (file) {
-        await handleFileChange(file);
-      }
+      if (file) await handleFileChange(file);
     });
 
     async function handleFileChange(file) {
@@ -472,7 +466,6 @@
     });
     updateCharCount();
 
-    // Virtual smoke test: ensure wiring runs without invoking backend.
     (() => {
       const sample = { text: 'virtual test only' };
       console.log('Virtual test payload', sample);

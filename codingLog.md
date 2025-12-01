@@ -142,3 +142,34 @@
 - Files: `public/index.html`
 - Added runtime override to show “解析中...” with spinner and disable the “开始 AI 解析” button while processing, restoring label/state after completion.
 - Processing modal still shows; button is now protected from re-click during analysis.
+
+### 2025-12-01 17:40 - Add scenario selector and prompt injection
+- Files: `public/index.html`
+- Added a scenario dropdown above Step 1 with descriptions for “性格色彩卡牌分析” and “朋友圈文案优化”.
+- Prepends selected scenario prompt to user text and passes scenario in payload to existing API calls (text/image); exports still show user’s original text.
+- Updated front-end API payloads to include scenario key while keeping existing endpoints unchanged.
+
+### 2025-12-01 18:10 - Rebuild frontend with prompt loader and scenario dropdown
+- Files: `public/index.html`, `public/prompt.txt`
+- Recreated frontend entry to avoid encoding issues; added scenario selector and prompt loader that fetches `prompt.txt` sections `[CARD_SCENARIO]` / `[MOMENT_SCENARIO]`.
+- Sends combined prompt + user text with `scenario` to existing `/api/chat/text` and `/api/chat/image`; keeps export showing user’s raw text.
+- Preserved spinner/disabled state during parsing, processing modal, markdown render, image export, and image analysis toggle.
+
+### 2025-12-01 18:22 - Load prompts from per-scenario files
+- Files: `public/index.html`
+- Updated prompt loader to fetch per-scenario files in `public/prompts` (`CARD_SCENARIO.txt`, `MOMENT_SCENARIO.txt`) with caching.
+- Maintained scenario dropdown and payload shape (`scenario` + combined prompt + user text) to existing endpoints.
+
+### 2025-12-01 18:35 - Recreate frontend from clean source
+- Files: `public/index.html`
+- Rebuilt index to avoid prior corruption, keeping scenario dropdown and loading prompts from `/prompts/CARD_SCENARIO.txt` and `/prompts/MOMENT_SCENARIO.txt` per selection.
+- Ensures selected prompt text prepends user input, sends `scenario` with payload, and preserves existing UI behaviors (spinner/disable during parse, modal, export, image toggle).
+
+### 2025-12-01 18:50 - Backend loads scenario-specific prompts
+- Files: `server.js`
+- Added scenario prompt loader reading `/public/prompts/CARD_SCENARIO.txt` or `/public/prompts/MOMENT_SCENARIO.txt` based on `scenario`; falls back to `prompt.txt`.
+- Text/image endpoints now use scenario prompt instead of always `prompt.txt`, preserving existing model calls and payload shapes.
+
+### 2025-12-01 19:00 - Ignore prompt secrets and add examples
+- Files: `.gitignore`, `public/prompts/CARD_SCENARIO.example.txt`, `public/prompts/MOMENT_SCENARIO.example.txt`
+- Gitignore now excludes real prompt files (`public/prompts/CARD_SCENARIO.txt`, `public/prompts/MOMENT_SCENARIO.txt`); added example placeholders for both scenarios.

@@ -18,3 +18,7 @@ Thumbs.db
 # Optional build/coverage outputs (if generated)
 dist/
 coverage/
+
+# Scenario prompts (use examples instead)
+public/prompts/CARD_SCENARIO.txt
+public/prompts/MOMENT_SCENARIO.txt

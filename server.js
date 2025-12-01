@@ -13,6 +13,11 @@ const API_KEY = process.env.DASHSCOPE_API_KEY;
 const TEXT_MODEL = process.env.TEXT_MODEL || 'qwen-plus';
 const VISION_MODEL = process.env.VISION_MODEL || 'qwen-vl-plus';
 const PROMPT_PATH = path.join(__dirname, 'prompt.txt');
+const PROMPTS_DIR = path.join(__dirname, 'public', 'prompts');
+const SCENARIO_PROMPTS = {
+  card: 'CARD_SCENARIO.txt',
+  moment: 'MOMENT_SCENARIO.txt'
+};
 
 if (!API_KEY) {
   console.warn('DASHSCOPE_API_KEY is missing. Set it in .env before running the server.');
@@ -54,6 +59,21 @@ function readPrompt() {
   }
 }
 
+function readScenarioPrompt(scenario) {
+  const fileName = SCENARIO_PROMPTS[scenario];
+  if (fileName) {
+    const scenarioPath = path.join(PROMPTS_DIR, fileName);
+    try {
+      if (fs.existsSync(scenarioPath)) {
+        return fs.readFileSync(scenarioPath, 'utf8').trim();
+      }
+    } catch (err) {
+      console.error(`Read scenario prompt error (${scenario}):`, err.message);
+    }
+  }
+  return readPrompt();
+}
+
 async function callDashScopeChat(model, messages) {
   const url = `${BASE_URL}/chat/completions`;
   const response = await fetch(url, {
@@ -82,13 +102,13 @@ async function callDashScopeChat(model, messages) {
 }
 
 app.post('/api/chat/text', async (req, res) => {
-  const { text } = req.body || {};
+  const { text, scenario } = req.body || {};
   if (!text || typeof text !== 'string') {
     return res.status(400).json({ error: 'Text is required.' });
   }
 
   try {
-    const prompt = readPrompt();
+    const prompt = readScenarioPrompt(scenario);
     const messages = [
       ...(prompt
         ? [
@@ -112,7 +132,7 @@ app.post('/api/chat/text', async (req, res) => {
 });
 
 app.post('/api/chat/image', async (req, res) => {
-  const { text, imageBase64 } = req.body || {};
+  const { text, imageBase64, scenario } = req.body || {};
   const userText = typeof text === 'string' ? text : '';
   const hasImage = Boolean(imageBase64 && typeof imageBase64 === 'string');
   if (!userText && !hasImage) {
@@ -120,7 +140,7 @@ app.post('/api/chat/image', async (req, res) => {
   }
 
   try {
-    const prompt = readPrompt();
+    const prompt = readScenarioPrompt(scenario);
     const imageUrl =
       imageBase64.startsWith('data:') && imageBase64.includes('base64,')
         ? imageBase64
