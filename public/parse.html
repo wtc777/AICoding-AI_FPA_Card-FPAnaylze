@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Upload your personality color card and get a clear, relatable reading." />
+  <title>Personality Color Card Analysis - Reading</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/utils/i18n.js"></script>
+  <script src="/utils/parseAnalysisResult.js"></script>
+  <style>
+    :root { --primary-gradient-start: #4F7BFF; --primary-gradient-end: #6DD5FA; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(79,123,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(109,213,250,0.16), transparent 30%),
+                  #F7F9FC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #E5E7EB; border-radius: 20px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background-color: #D1D5DB; }
+    .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.5); }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+<body>
+  <div class="relative min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-10 -top-10 w-72 h-72 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-80 h-80 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 lg:py-16">
+      <!-- Top navigation -->
+      <header class="flex items-center justify-between gap-4 mb-8 pb-2 lg:pb-4">
+        <div class="space-y-1">
+          <p id="heroTag" class="text-sm text-blue-500 font-semibold tracking-wide uppercase">Card Insight</p>
+          <h1 id="heroTitle" class="text-3xl sm:text-4xl font-bold text-gray-900">Personality Color Card Analysis</h1>
+          <p id="heroDesc" class="text-gray-500">Upload a card photo or key details to get a clear, easy-to-share reading.</p>
+        </div>
+        <div class="relative">
+          <button id="userMenuBtn" class="flex items-center gap-2 px-4 py-3 rounded-full bg-white border border-gray-200 shadow-sm hover:border-blue-200">
+            <div class="w-9 h-9 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold" id="userAvatar">U</div>
+            <span id="userInfo" class="hidden text-sm text-gray-700"></span>
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+          </button>
+          <div id="userMenu" class="hidden absolute right-0 mt-2 w-52 rounded-xl bg-white shadow-lg border border-gray-100 py-2 z-20">
+            <a id="menuProfile" href="/profile.html" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Profile</a>
+            <a id="adminLink" href="/admin.html" class="hidden block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Activation codes</a>
+            <button id="logoutBtn" class="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">Log out</button>
+            <button id="deleteAccountBtn" class="w-full text-left px-4 py-2 text-sm text-rose-600 hover:bg-rose-50">Delete account</button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Core flow -->
+      <section class="space-y-6">
+        <div class="bg-white/90 glass rounded-3xl shadow-sm border border-gray-100/60 p-6 lg:p-8 space-y-6">
+          <div class="space-y-3">
+            <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Step 1</p>
+            <h2 id="step1Title" class="text-xl font-semibold text-gray-900">Upload your card photo</h2>
+            <p id="step1Desc" class="text-sm text-gray-500">Drag or click to upload a JPG/PNG card image under 5MB. The app will read the details for you.</p>
+          </div>
+          <div id="dropzone" class="relative w-full h-64 rounded-2xl border-2 border-dashed border-gray-200 bg-white transition-all duration-300 flex flex-col items-center justify-center overflow-hidden cursor-pointer">
+            <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background-image: radial-gradient(#4F7BFF 1px, transparent 1px); background-size: 20px 20px;"></div>
+            <input id="fileInput" type="file" accept="image/png, image/jpeg, image/jpg" class="hidden" />
+            <div id="emptyState" class="text-center z-10">
+              <div class="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-tr from-blue-50 to-blue-100 flex items-center justify-center shadow-inner">
+                <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+              </div>
+              <p id="dropUpload" class="text-base font-semibold text-gray-700 mb-1">Click or drag to upload</p>
+              <p id="dropNote" class="text-xs text-gray-400">Supports JPG/PNG (Max 5MB)</p>
+            </div>
+            <div id="previewWrapper" class="hidden w-full h-full relative z-10">
+              <img id="previewImage" alt="Preview" class="h-full w-full object-contain p-2" />
+              <div class="absolute inset-0 bg-gradient-to-t from-black/40 via-black/5 to-transparent pointer-events-none"></div>
+              <div class="absolute bottom-0 left-0 right-0 p-4 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-2 bg-white/90 backdrop-blur rounded-xl px-3 py-2 text-sm text-gray-700 shadow-sm border border-white/60 w-full">
+                  <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  </div>
+                  <span id="fileName" class="truncate">Card image selected</span>
+                </div>
+                <button id="resetFile" class="flex-shrink-0 p-2 rounded-lg bg-white/90 border border-gray-100 shadow-sm text-gray-500 hover:text-red-500 hover:border-red-100 transition-colors" title="Remove image">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Step 2</p>
+            <h2 id="step2Title" class="text-xl font-semibold text-gray-900">Add your question (optional)</h2>
+            <p id="step2Desc" class="text-sm text-gray-500">Share your situation or what you hope this card can explain.</p>
+          </div>
+          <div class="relative">
+            <textarea id="textInput" rows="4" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400 custom-scrollbar" placeholder="For example: How does this card reflect my current mood or next move?"></textarea>
+            <div class="absolute right-3 bottom-3 text-xs text-gray-400" id="charCount">0/500</div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span id="statusBadge" class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm bg-blue-50 text-blue-600 border-blue-100">Ready to analyze</span>
+            <div class="flex items-center gap-3">
+              <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 text-blue-600 text-sm border border-blue-100">
+                <span id="creditsLabel">Remaining readings</span> <span id="creditsValue" class="font-semibold">--</span>
+              </span>
+              <button id="analyzeBtn" class="relative inline-flex items-center gap-2 overflow-hidden rounded-2xl px-6 py-3 font-semibold text-white shadow-xl shadow-blue-500/30 transition-all duration-300 hover:shadow-blue-500/40 active:scale-[0.98]">
+                <div class="absolute inset-0 bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA]"></div>
+                <span id="analyzeLabel" class="relative flex items-center gap-2">
+              <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+                  <span id="analyzeText">Start card reading</span>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <section class="bg-white/95 glass rounded-3xl shadow-sm border border-gray-100/70 p-6 lg:p-8 space-y-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Result</p>
+              <h2 id="resultTitle" class="text-xl font-semibold text-gray-900">Reading result</h2>
+            </div>
+            <div class="flex items-center gap-3">
+              <label class="inline-flex items-center gap-2 text-sm text-gray-600 border border-gray-200 rounded-full px-3 py-1.5 bg-white hover:border-blue-200 hover:text-blue-600 transition">
+                <input id="analysisToggle" type="checkbox" class="h-4 w-4 text-blue-600 border-gray-300 rounded" />
+                <span id="toggleLabel">Show image highlights</span>
+              </label>
+            </div>
+          </div>
+
+          <div id="resultCard" class="rounded-2xl border border-gray-100 bg-white shadow-inner p-5 space-y-4">
+            <div id="resultPlaceholder" class="h-full flex flex-col items-center justify-center text-center text-gray-400 space-y-3 py-10">
+              <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-blue-50 to-blue-100 flex items-center justify-center">
+                <svg class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 7h18M3 12h18M3 17h18" /></svg>
+              </div>
+              <p id="resultPlaceholderText" class="text-sm">Upload a card photo and tap "Start card reading" to see the reading here.</p>
+            </div>
+            <article id="resultContent" class="markdown-body prose max-w-none hidden text-gray-800 leading-relaxed"></article>
+            <div id="rawTextSection" class="hidden border border-gray-100 rounded-2xl bg-gray-50/80 p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <p id="rawTitle" class="text-xs font-semibold text-gray-600">Raw text</p>
+                <button id="copyRawBtn" class="inline-flex items-center gap-2 text-xs font-semibold text-blue-600 bg-white px-3 py-1.5 rounded-lg border border-blue-100 hover:border-blue-200">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7a2 2 0 012-2h6a2 2 0 012 2v10a2 2 0 01-2 2H10a2 2 0 01-2-2V7z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7h-2a2 2 0 00-2 2v2a2 2 0 01-2 2H8" /></svg>
+                  <span id="copyRawText">Copy raw text</span>
+                </button>
+              </div>
+              <pre id="rawText" class="text-xs text-gray-700 whitespace-pre-wrap leading-6 max-h-56 overflow-auto rounded-xl border border-gray-100 bg-white px-4 py-3 custom-scrollbar"></pre>
+            </div>
+            <div id="imageAnalysis" class="text-xs text-gray-500 hidden"></div>
+          </div>
+
+          <button id="exportBtn" class="relative w-full overflow-hidden rounded-2xl py-4 font-semibold text-white shadow-xl shadow-blue-500/30 transition-all duration-300 hover:shadow-blue-500/40 active:scale-[0.98]">
+            <div class="absolute inset-0 bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA]"></div>
+            <span class="relative flex items-center justify-center gap-2">
+              <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+              <span id="exportBtnText">Save reading</span>
+            </span>
+          </button>
+          <div id="exportPreviewWrapper" class="hidden mt-3 rounded-2xl border border-gray-100 bg-white shadow-inner p-3">
+            <p class="text-xs text-gray-500 mb-2">导出预览</p>
+            <img id="exportImagePreview" alt="Exported preview" class="w-full rounded-xl border border-gray-100 shadow-sm" />
+          </div>
+        </section>
+      </section>
+
+      <div class="absolute -z-10 top-10 right-0 w-52 h-52 bg-gradient-to-br from-blue-100 to-blue-50 blur-3xl"></div>
+    </main>
+
+    <!-- Processing status -->
+    <div id="processingModal" class="hidden fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center px-6">
+      <div class="w-full max-w-sm rounded-2xl bg-white shadow-2xl border border-gray-100 p-6 text-center space-y-3">
+        <div class="w-12 h-12 mx-auto rounded-full bg-blue-50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-blue-500 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v2m0 12v2m8-8h-2M6 12H4m12.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636" /></svg>
+        </div>
+        <p id="processingTitle" class="text-lg font-semibold text-gray-900">Preparing your reading...</p>
+        <p id="processingDesc" class="text-sm text-gray-500">This takes just a moment and will close automatically.</p>
+      </div>
+    </div>
+
+    <!-- Export area -->
+    <div id="exportArea" class="absolute top-0 left-0 -z-50 opacity-0 pointer-events-none overflow-hidden h-0 w-0">
+      <div id="exportContent" class="p-8 bg-white w-[880px] font-sans">
+        <div class="flex justify-between items-center mb-8 border-b pb-4">
+          <h1 id="exportReportTitle" class="text-2xl font-bold text-gray-900">Personality Color Card Report</h1>
+          <span class="text-sm text-gray-500" id="exportDate"></span>
+        </div>
+        <div class="flex gap-6 mb-8">
+          <div class="w-1/3 flex-shrink-0">
+            <img id="exportPreview" alt="Analyzed" class="w-full rounded-lg shadow-sm border border-gray-100" />
+          </div>
+          <div class="w-2/3">
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-100 h-full">
+              <p class="text-xs font-semibold text-gray-500 uppercase mb-2">User Context</p>
+              <p class="text-sm text-gray-700 italic" id="exportText">No extra notes</p>
+            </div>
+          </div>
+        </div>
+        <div class="prose prose-blue max-w-none">
+          <div class="markdown-body" id="exportMarkdown"></div>
+        </div>
+        <div class="mt-10 pt-6 border-t border-gray-100 text-center">
+          <p id="exportGenerator" class="text-xs text-gray-400 tracking-wider">GENERATED BY CARD INSIGHT</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const previewWrapper = document.getElementById('previewWrapper');
+    const previewImage = document.getElementById('previewImage');
+    const emptyState = document.getElementById('emptyState');
+    const fileNameEl = document.getElementById('fileName');
+    const resetFileBtn = document.getElementById('resetFile');
+    const textInput = document.getElementById('textInput');
+    const charCount = document.getElementById('charCount');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const statusBadge = document.getElementById('statusBadge');
+    const resultContent = document.getElementById('resultContent');
+    const resultPlaceholder = document.getElementById('resultPlaceholder');
+    const imageAnalysisEl = document.getElementById('imageAnalysis');
+    const rawTextSection = document.getElementById('rawTextSection');
+    const rawText = document.getElementById('rawText');
+    const copyRawBtn = document.getElementById('copyRawBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const exportPreview = document.getElementById('exportPreview');
+    const exportText = document.getElementById('exportText');
+    const exportMarkdown = document.getElementById('exportMarkdown');
+    const exportDate = document.getElementById('exportDate');
+    const exportContent = document.getElementById('exportContent');
+    const exportPreviewWrapper = document.getElementById('exportPreviewWrapper');
+    const exportImagePreview = document.getElementById('exportImagePreview');
+    const analysisToggle = document.getElementById('analysisToggle');
+    const processingModal = document.getElementById('processingModal');
+    const analyzeLabel = document.getElementById('analyzeLabel');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const creditsValue = document.getElementById('creditsValue');
+    const adminLink = document.getElementById('adminLink');
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenu = document.getElementById('userMenu');
+    const userAvatar = document.getElementById('userAvatar');
+    const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+    const DEFAULT_SCENARIO = 'card';
+
+    let selectedFile = null;
+    let base64Cache = '';
+    let showImageAnalysis = false;
+    const promptCache = {};
+    const promptFilePath = '/prompts/CARD_SCENARIO.txt';
+    const lang = window.i18n?.getLang() || 'zh';
+    let translations = {};
+    let statusText = {
+      ready: 'Ready to analyze',
+      processing: 'Processing',
+      done: 'Ready to share',
+      failed: 'Could not finish',
+      imageReady: 'Card image ready'
+    };
+
+    function t(key, fallback = '') {
+      if (!translations || !key) return fallback;
+      const value = key.split('.').reduce((acc, part) => {
+        if (acc && acc[part] !== undefined) return acc[part];
+        return undefined;
+      }, translations);
+      return value === undefined ? fallback : value;
+    }
+
+    async function initI18n() {
+      translations = await window.i18n.loadTranslations(lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('app.browserTitle', document.title);
+      statusText = {
+        ready: t('status.ready', statusText.ready),
+        processing: t('status.processing', statusText.processing),
+        done: t('status.done', statusText.done),
+        failed: t('status.failed', statusText.failed),
+        imageReady: t('status.imageReady', statusText.imageReady)
+      };
+
+      window.i18n.applyTranslations(translations, [
+        { selector: '#heroTag', key: 'nav.heroTag' },
+        { selector: '#heroTitle', key: 'nav.heroTitle' },
+        { selector: '#heroDesc', key: 'nav.heroDesc' },
+        { selector: '#menuProfile', key: 'nav.profile' },
+        { selector: '#adminLink', key: 'nav.admin' },
+        { selector: '#logoutBtn', key: 'nav.logout' },
+        { selector: '#deleteAccountBtn', key: 'nav.delete' },
+        { selector: '#step1Title', key: 'steps.uploadTitle' },
+        { selector: '#step1Desc', key: 'steps.uploadDesc' },
+        { selector: '#dropUpload', key: 'steps.uploadAction' },
+        { selector: '#dropNote', key: 'steps.uploadNote' },
+        { selector: '#step2Title', key: 'steps.questionTitle' },
+        { selector: '#step2Desc', key: 'steps.questionDesc' },
+        { selector: '#statusBadge', key: 'status.ready' },
+        { selector: '#creditsLabel', key: 'credits.label' },
+        { selector: '#analyzeText', key: 'buttons.analyze' },
+        { selector: '#resultTitle', key: 'result.title' },
+        { selector: '#toggleLabel', key: 'result.showImage' },
+        { selector: '#resultPlaceholderText', key: 'result.placeholder' },
+        { selector: '#rawTitle', key: 'result.rawTitle' },
+        { selector: '#copyRawText', key: 'result.copyRaw' },
+        { selector: '#exportBtnText', key: 'buttons.export' },
+        { selector: '#processingTitle', key: 'processing.title' },
+        { selector: '#processingDesc', key: 'processing.desc' },
+        { selector: '#exportReportTitle', key: 'export.reportTitle' },
+        { selector: '#exportText', key: 'export.noExtra' },
+        { selector: '#exportGenerator', key: 'export.generator' }
+      ]);
+
+      const placeholder = t('steps.questionPlaceholder', textInput.placeholder);
+      textInput.setAttribute('placeholder', placeholder);
+      setStatus(statusText.ready, 'blue');
+    }
+
+    function ensureDataFiles() {
+      const raw = localStorage.getItem('cardInsightAuth');
+      if (!raw) {
+        window.location.href = '/login.html';
+        return null;
+      }
+      try {
+        return JSON.parse(raw);
+      } catch (err) {
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+        return null;
+      }
+    }
+
+    function setStatus(text, color = 'blue') {
+      statusBadge.textContent = text;
+      const colorMap = {
+        blue: ['bg-blue-50', 'text-blue-600', 'border-blue-100'],
+        green: ['bg-emerald-50', 'text-emerald-600', 'border-emerald-100'],
+        red: ['bg-rose-50', 'text-rose-600', 'border-rose-100'],
+        gray: ['bg-gray-50', 'text-gray-600', 'border-gray-100']
+      };
+      statusBadge.className = 'inline-flex items-center gap-2 px-3 py-1.5 rounded-full border text-sm';
+      statusBadge.classList.add(...(colorMap[color] || colorMap.blue));
+    }
+
+    function updateCharCount() {
+      const len = textInput.value.length;
+      charCount.textContent = `${len}/500`;
+      if (len > 500) {
+        textInput.value = textInput.value.slice(0, 500);
+        charCount.textContent = '500/500';
+      }
+    }
+
+    function resetPreview() {
+      selectedFile = null;
+      base64Cache = '';
+      fileInput.value = '';
+      previewWrapper.classList.add('hidden');
+      emptyState.classList.remove('hidden');
+    }
+
+    function setProcessing(isProcessing) {
+      if (isProcessing) {
+        processingModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      } else {
+        processingModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    async function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = () => reject(new Error('Failed to read file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function loadDefaultPrompt() {
+      if (promptCache.default !== undefined) return promptCache.default;
+      try {
+        const res = await fetch(promptFilePath);
+        if (!res.ok) throw new Error(`Load prompt failed: ${res.status}`);
+        const text = await res.text();
+        promptCache.default = text.trim();
+      } catch (err) {
+        console.warn('Load prompt failed, fallback to empty prompt', err);
+        promptCache.default = '';
+      }
+      return promptCache.default;
+    }
+
+    function getToken() {
+      const cache = ensureDataFiles();
+      return cache?.token || '';
+    }
+
+    async function callApi(payload) {
+      const endpoint = payload.imageBase64 ? '/api/chat/image' : '/api/chat/text';
+      const body = payload.imageBase64
+        ? { text: payload.text || '', imageBase64: payload.imageBase64, scenario: payload.scenario }
+        : { text: payload.text || '', scenario: payload.scenario };
+
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        const err = new Error(data?.error || 'Request failed');
+        err.code = data?.code;
+        throw err;
+      }
+      const markdown = data.text || data.markdown || '';
+      return {
+        markdown,
+        imageAnalysis: data.imageAnalysis || '',
+        credits: data.credits
+      };
+    }
+
+    function copyText(text) {
+      if (!text) return;
+      navigator.clipboard?.writeText(text).catch(() => {});
+    }
+
+    function resetRawState() {
+      if (rawTextSection) rawTextSection.classList.add('hidden');
+      if (rawText) rawText.textContent = '';
+      if (copyRawBtn) copyRawBtn.disabled = true;
+    }
+
+    function applyImageAnalysis(analysis) {
+      const shouldShowAnalysis = Boolean(analysis && showImageAnalysis);
+      const label = translations?.result?.imageHighlights || 'Image highlights: {analysis}';
+      imageAnalysisEl.textContent = shouldShowAnalysis ? label.replace('{analysis}', analysis) : '';
+      imageAnalysisEl.classList.toggle('hidden', !shouldShowAnalysis);
+    }
+
+    function renderResult(markdown, analysis) {
+      const raw = markdown || '';
+      const rendered = raw ? marked.parse(raw) : `<p class="text-sm text-gray-500">${t('result.noReading', 'No reading yet.')}</p>`;
+      resultContent.innerHTML = rendered;
+
+      resultContent.classList.remove('hidden');
+      resultPlaceholder.classList.add('hidden');
+      if (rawTextSection && rawText) {
+        rawText.textContent = raw || t('result.noRaw', 'No raw text yet.');
+        rawTextSection.classList.toggle('hidden', !raw);
+      }
+      if (copyRawBtn) {
+        copyRawBtn.onclick = () => copyText(raw);
+        copyRawBtn.disabled = !raw;
+      }
+      applyImageAnalysis(analysis);
+      return;
+      const shouldShowAnalysis = Boolean(analysis && showImageAnalysis);
+      imageAnalysisEl.textContent = shouldShowAnalysis ? `Image highlights: ${analysis}` : '';
+      imageAnalysisEl.classList.toggle('hidden', !shouldShowAnalysis);
+      if (analysis && showImageAnalysis) {
+        imageAnalysisEl.textContent = `Image highlights: ${analysis}`;
+        imageAnalysisEl.classList.remove('hidden');
+      } else {
+        imageAnalysisEl.classList.add('hidden');
+      }
+      imageAnalysisEl.textContent = analysis && showImageAnalysis ? `Image highlights: ${analysis}` : '';
+    }
+
+    function setCredits(value) {
+      if (creditsValue) {
+        creditsValue.textContent = Number.isFinite(value) ? String(value) : '--';
+      }
+    }
+
+    function setUserSummary(user) {
+      if (!user) return;
+      const label = user.nickname ? `${user.phone} / ${user.nickname}` : user.phone;
+      if (userAvatar && user.nickname) {
+        userAvatar.textContent = user.nickname.slice(0, 1).toUpperCase();
+      }
+      if (adminLink) {
+        if (user.role === 'admin' || user.role === 'super_admin') {
+          adminLink.classList.remove('hidden');
+        } else {
+          adminLink.classList.add('hidden');
+        }
+      }
+      if (typeof user.credits === 'number') {
+        setCredits(user.credits);
+      }
+    }
+
+    async function handleAnalyze() {
+      if (!selectedFile) {
+        alert(t('alerts.uploadFirst', 'Please upload a card photo before starting.'));
+        return;
+      }
+      analyzeBtn.disabled = true;
+      analyzeBtn.classList.add('opacity-90', 'cursor-not-allowed');
+      setStatus(statusText.processing, 'gray');
+      setProcessing(true);
+      analyzeLabel.innerHTML = `
+        <svg class="w-5 h-5 text-blue-100 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v2m0 12v2m8-8h-2M6 12H4m12.364-6.364l-1.414 1.414M7.05 16.95l-1.414 1.414m12.728 0l-1.414-1.414M7.05 7.05L5.636 5.636" /></svg>
+        ${t('status.processing', 'Working...')}
+      `;
+
+      try {
+        if (!base64Cache && selectedFile) {
+          base64Cache = await fileToBase64(selectedFile);
+        }
+        const promptText = await loadDefaultPrompt();
+        const baseText = textInput.value.trim();
+        const finalText = promptText
+          ? `${promptText}\n\nUser input: ${baseText || '(no extra note)'}`
+          : baseText;
+
+        const payload = {
+          imageBase64: base64Cache,
+          text: finalText,
+          scenario: DEFAULT_SCENARIO
+        };
+        const res = await callApi(payload);
+        renderResult(res.markdown, res.imageAnalysis);
+        setStatus(statusText.done, 'green');
+        if (typeof res.credits === 'number') {
+          setCredits(res.credits);
+        }
+
+        exportPreview.src = previewImage.src;
+        exportText.textContent = baseText || t('export.noExtra', 'No extra notes');
+        exportMarkdown.innerHTML = marked.parse(res.markdown || '');
+        exportDate.textContent = new Date().toLocaleDateString();
+      } catch (err) {
+        if (err.code === 'INSUFFICIENT_CREDITS') {
+          alert(t('alerts.insufficientCredits', 'Reading chances are used up. Add more with an activation code.'));
+        }
+        console.error(err);
+        setStatus(statusText.failed, 'red');
+        resultContent.innerHTML = `<p class="text-rose-500 text-sm">Error: ${err.message}</p>`;
+        resultContent.classList.remove('hidden');
+        resultPlaceholder.classList.add('hidden');
+        imageAnalysisEl.classList.add('hidden');
+        resetRawState();
+      } finally {
+        analyzeBtn.disabled = false;
+        analyzeBtn.classList.remove('opacity-90', 'cursor-not-allowed');
+        setProcessing(false);
+        analyzeLabel.innerHTML = `
+          <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+          ${t('buttons.analyze', 'Start card reading')}
+        `;
+      }
+    }
+
+    async function handleExport() {
+      if (!previewImage.src || resultContent.classList.contains('hidden')) {
+        alert(t('alerts.noExport', 'No reading available to export yet.'));
+        return;
+      }
+      try {
+        exportBtn.disabled = true;
+        const canvas = await html2canvas(exportContent, { useCORS: true, scale: 2, backgroundColor: '#ffffff' });
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.download = `Card_Insight_${Date.now()}.png`;
+        link.href = dataUrl;
+        link.click();
+        if (exportPreviewWrapper && exportImagePreview) {
+          exportImagePreview.src = dataUrl;
+          exportPreviewWrapper.classList.remove('hidden');
+        }
+      } catch (err) {
+        console.error('Export failed', err);
+        alert(t('alerts.exportFailed', 'Export failed: {message}').replace('{message}', err.message));
+      } finally {
+        exportBtn.disabled = false;
+      }
+    }
+
+    dropzone.addEventListener('click', () => fileInput.click());
+    dropzone.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropzone.classList.add('border-blue-400', 'bg-blue-50/40');
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-blue-400', 'bg-blue-50/40');
+    });
+    dropzone.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      dropzone.classList.remove('border-blue-400', 'bg-blue-50/40');
+      const file = e.dataTransfer?.files?.[0];
+      if (file) await handleFileChange(file);
+    });
+
+    async function handleFileChange(file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert(t('alerts.oversize', 'The file is larger than 5MB. Please choose a smaller image.'));
+        return;
+      }
+      selectedFile = file;
+      base64Cache = '';
+      const objectUrl = URL.createObjectURL(file);
+      previewImage.src = objectUrl;
+      fileNameEl.textContent = file.name;
+      previewWrapper.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+      setStatus(statusText.imageReady, 'blue');
+    }
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        await handleFileChange(file);
+      } else {
+        resetPreview();
+      }
+    });
+
+    resetFileBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      resetPreview();
+      setStatus(statusText.ready, 'blue');
+      resultContent.classList.add('hidden');
+      resultPlaceholder.classList.remove('hidden');
+      imageAnalysisEl.classList.add('hidden');
+    });
+
+    analyzeBtn.addEventListener('click', handleAnalyze);
+    textInput.addEventListener('input', updateCharCount);
+    exportBtn.addEventListener('click', handleExport);
+    analysisToggle.addEventListener('change', () => {
+      showImageAnalysis = analysisToggle.checked;
+      if (!showImageAnalysis) {
+        imageAnalysisEl.classList.add('hidden');
+      } else if (imageAnalysisEl.textContent) {
+        imageAnalysisEl.classList.remove('hidden');
+      }
+    });
+    resetFileBtn.addEventListener('click', resetRawState);
+    updateCharCount();
+
+    logoutBtn.addEventListener('click', () => {
+      localStorage.removeItem('cardInsightAuth');
+      window.location.href = '/login.html';
+    });
+
+    deleteAccountBtn.addEventListener('click', async () => {
+      const text = prompt('Dangerous action: type "DELETE" to confirm account removal.');
+      if (text !== 'DELETE') return;
+      try {
+        const res = await fetch('/api/profile/delete', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${getToken()}` }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || 'Delete failed');
+        alert('Account deleted');
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+      } catch (err) {
+        alert(err.message || 'Delete failed');
+      }
+    });
+
+    function toggleMenu(show) {
+      userMenu.classList.toggle('hidden', !show);
+    }
+    userMenuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleMenu(userMenu.classList.contains('hidden'));
+    });
+    document.addEventListener('click', () => toggleMenu(false));
+
+    initI18n();
+    (async () => {
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+      try {
+        const res = await fetch('/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+        if (!res.ok) throw new Error('unauthorized');
+        const user = await res.json();
+        setUserSummary(user);
+      } catch (err) {
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+        return;
+      }
+    })();
+  </script>
+</body>
+</html>

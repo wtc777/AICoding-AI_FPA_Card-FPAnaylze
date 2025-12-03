@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Profile - view your account and reading credits" />
+  <title>Profile - Personality Color Card Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/utils/i18n.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(79,123,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(109,213,250,0.16), transparent 30%),
+                  #F7F9FC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="relative min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-16 -top-10 w-80 h-80 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-96 h-96 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative max-w-3xl mx-auto px-4 py-8 sm:py-12">
+      <header class="flex items-center justify-between gap-3 mb-6">
+        <div>
+          <p id="profileTag" class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Profile</p>
+          <h1 id="profileTitle" class="text-2xl font-bold text-gray-900">Account center</h1>
+          <p id="profileDesc" class="text-sm text-gray-500 mt-1">See your account info, reading credits, and manage activation codes.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="backLink" href="/parse.html" class="px-3 py-2 rounded-full text-sm font-semibold text-blue-600 bg-white border border-blue-100 shadow-sm hover:border-blue-200">Back to reading</a>
+          <a id="adminEntry" href="/admin.html" class="hidden px-3 py-2 rounded-full text-sm font-semibold text-amber-600 bg-white border border-amber-200 shadow-sm hover:border-amber-300">Admin console</a>
+          <button id="langToggle" class="px-1.5 py-0.5 text-xs text-gray-500 rounded-md border border-transparent hover:text-blue-600">
+            ZH
+          </button>
+        </div>
+      </header>
+
+      <section class="space-y-4">
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h2 id="infoTitle" class="text-sm font-semibold text-gray-700 mb-3">Account info</h2>
+          <div class="space-y-2 text-sm text-gray-700">
+            <div class="flex justify-between">
+              <span id="labelName" class="text-gray-500">Name</span>
+              <span id="nickname">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span id="labelPhone" class="text-gray-500">Phone</span>
+              <span id="phone">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span id="labelRole" class="text-gray-500">Role</span>
+              <span id="role">--</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 id="creditsTitle" class="text-sm font-semibold text-gray-700">Reading credits</h2>
+            <span id="creditsTip" class="text-xs text-gray-500">Each reading uses 1 credit.</span>
+          </div>
+          <div class="text-4xl font-bold text-blue-600" id="credits">--</div>
+          <div class="space-y-2">
+            <div class="flex flex-col sm:flex-row gap-2">
+              <input id="activationInput" type="text" class="flex-1 rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Enter activation code" />
+              <button id="activationBtn" class="w-full sm:w-auto px-4 py-3 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] shadow-sm hover:shadow-md transition">
+                <span id="activationBtnText">Apply code</span>
+              </button>
+            </div>
+            <p id="activationMsg" class="text-xs text-gray-500"></p>
+          </div>
+        </div>
+
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+          <h2 id="safetyTitle" class="text-sm font-semibold text-gray-700">Account safety</h2>
+          <button id="logoutBtn" class="w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 hover:border-red-200 hover:text-red-600 transition">
+            <span id="logoutText">Log out</span>
+          </button>
+          <button id="deleteBtn" class="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-600 hover:bg-red-100 transition">
+            <span id="deleteText">Delete account</span>
+          </button>
+          <p id="deleteTip" class="text-xs text-gray-500 leading-relaxed">Deleting the account will remove your profile and reading history. Proceed with care.</p>
+        </div>
+
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+          <h2 id="updateTitle" class="text-sm font-semibold text-gray-700">Update nickname and password</h2>
+          <div class="space-y-3">
+            <div class="space-y-1">
+              <div class="flex items-center justify-between">
+                <label for="updateNickname" id="updateNicknameLabel" class="text-sm text-gray-700">Nickname</label>
+                <span id="currentNickname" class="text-xs text-gray-500">--</span>
+              </div>
+              <input id="updateNickname" type="text" class="w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Enter new nickname" />
+            </div>
+            <div class="flex justify-end">
+              <button id="updateNicknameBtn" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] shadow-sm hover:shadow-md transition">
+                <span id="updateProfileText">Save changes</span>
+              </button>
+            </div>
+            <p id="updateMsg" class="text-xs text-gray-500"></p>
+          </div>
+          <div class="space-y-3 border-t border-gray-100 pt-3">
+            <h3 class="text-sm font-semibold text-gray-700">Change password</h3>
+            <div class="grid sm:grid-cols-2 gap-3">
+              <div class="space-y-1">
+                <label for="currentPassword" id="currentPasswordLabel" class="text-sm text-gray-700">Current password</label>
+                <input id="currentPassword" type="password" class="w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Enter current password" />
+              </div>
+              <div class="space-y-1">
+                <label for="newPassword" id="newPasswordLabel" class="text-sm text-gray-700">New password</label>
+                <input id="newPassword" type="password" class="w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="At least 6 characters" />
+              </div>
+              <div class="space-y-1 sm:col-span-2">
+                <label for="confirmPassword" id="confirmPasswordLabel" class="text-sm text-gray-700">Confirm new password</label>
+                <input id="confirmPassword" type="password" class="w-full rounded-xl border border-gray-200 bg-white/80 px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Re-enter new password" />
+              </div>
+            </div>
+            <div class="flex justify-end">
+              <button id="changePasswordBtn" class="px-4 py-2 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] shadow-sm hover:shadow-md transition">
+                <span id="changePasswordText">Save changes</span>
+              </button>
+            </div>
+            <p id="passwordMsg" class="text-xs text-gray-500"></p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const nicknameEl = document.getElementById('nickname');
+    const phoneEl = document.getElementById('phone');
+    const roleEl = document.getElementById('role');
+    const creditsEl = document.getElementById('credits');
+    const activationInput = document.getElementById('activationInput');
+    const activationBtn = document.getElementById('activationBtn');
+    const activationMsg = document.getElementById('activationMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const adminEntry = document.getElementById('adminEntry');
+    const langToggle = document.getElementById('langToggle');
+    const updateNickname = document.getElementById('updateNickname');
+    const updatePassword = document.getElementById('updatePassword');
+    const updateMsg = document.getElementById('updateMsg');
+    const updateNicknameBtn = document.getElementById('updateNicknameBtn');
+    const currentNickname = document.getElementById('currentNickname');
+    const currentPasswordInput = document.getElementById('currentPassword');
+    const newPasswordInput = document.getElementById('newPassword');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const changePasswordBtn = document.getElementById('changePasswordBtn');
+    const passwordMsg = document.getElementById('passwordMsg');
+    const lang = window.i18n?.getLang() || 'zh';
+    let translations = {};
+
+    function t(key, fallback = '') {
+      if (!translations || !key) return fallback;
+      const value = key.split('.').reduce((acc, part) => {
+        if (acc && acc[part] !== undefined) return acc[part];
+        return undefined;
+      }, translations);
+      return value === undefined ? fallback : value;
+    }
+
+    async function initI18n() {
+      translations = await window.i18n.loadTranslations(lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('app.browserTitle', document.title);
+      window.i18n.applyTranslations(translations, [
+        { selector: '#profileTag', key: 'app.name' },
+        { selector: '#profileTitle', key: 'profile.title' },
+        { selector: '#profileDesc', key: 'profile.desc' },
+        { selector: '#backLink', key: 'profile.back' },
+        { selector: '#adminEntry', key: 'profile.admin' },
+        { selector: '#infoTitle', key: 'profile.infoTitle' },
+        { selector: '#labelName', key: 'profile.name' },
+        { selector: '#labelPhone', key: 'profile.phone' },
+        { selector: '#labelRole', key: 'profile.role' },
+        { selector: '#creditsTitle', key: 'profile.credits' },
+        { selector: '#creditsTip', key: 'profile.creditsTip' },
+        { selector: '#activationBtnText', key: 'buttons.applyCode' },
+        { selector: '#safetyTitle', key: 'profile.safetyTitle' },
+        { selector: '#logoutText', key: 'profile.logout' },
+        { selector: '#deleteText', key: 'profile.delete' },
+        { selector: '#deleteTip', key: 'profile.deleteTip' },
+        { selector: '#updateTitle', key: 'profileUpdate.title' },
+        { selector: '#updateNicknameLabel', key: 'profileUpdate.nicknameLabel' },
+        { selector: '#updateProfileText', key: 'profileUpdate.submit' },
+        { selector: '#currentPasswordLabel', key: 'profileUpdate.currentPasswordLabel' },
+        { selector: '#newPasswordLabel', key: 'profileUpdate.newPasswordLabel' },
+        { selector: '#confirmPasswordLabel', key: 'profileUpdate.confirmPasswordLabel' },
+        { selector: '#changePasswordText', key: 'profileUpdate.submit' }
+      ]);
+      activationInput.setAttribute('placeholder', t('profile.activationPlaceholder', activationInput.placeholder));
+      if (updateNickname) {
+        updateNickname.setAttribute('placeholder', t('profileUpdate.nicknamePlaceholder', updateNickname.placeholder));
+      }
+      if (updatePassword) {
+        updatePassword.setAttribute('placeholder', t('profileUpdate.passwordPlaceholder', updatePassword.placeholder));
+      }
+      if (currentPasswordInput) {
+        currentPasswordInput.setAttribute(
+          'placeholder',
+          t('profileUpdate.currentPasswordPlaceholder', currentPasswordInput.placeholder)
+        );
+      }
+      if (newPasswordInput) {
+        newPasswordInput.setAttribute('placeholder', t('profileUpdate.newPasswordPlaceholder', newPasswordInput.placeholder));
+      }
+      if (confirmPasswordInput) {
+        confirmPasswordInput.setAttribute(
+          'placeholder',
+          t('profileUpdate.confirmPasswordPlaceholder', confirmPasswordInput.placeholder)
+        );
+      }
+    }
+
+    function getToken() {
+      try {
+        const raw = localStorage.getItem('cardInsightAuth');
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed?.token || '';
+      } catch (err) {
+        return '';
+      }
+    }
+
+    function maskPhone(phone) {
+      if (!phone || phone.length < 7) return phone || '--';
+      return `${phone.slice(0, 3)}****${phone.slice(-4)}`;
+    }
+
+    function roleLabel(role) {
+      if (role === 'admin') return t('profile.roleAdmin', 'Admin');
+      if (role === 'super_admin') return t('profile.roleSuper', 'Super admin');
+      return t('profile.roleMember', 'Member');
+    }
+
+    function updateLangToggle() {
+      if (!langToggle) return;
+      const current = window.i18n.getLang();
+      const isZh = current === 'zh';
+      langToggle.textContent = isZh ? t('language.zh', '中') : t('language.en', 'EN');
+      langToggle.classList.remove('text-gray-500');
+      langToggle.classList.add('bg-gray-100', 'text-gray-900', 'font-semibold', 'border', 'border-gray-200');
+    }
+
+    function setUser(user) {
+      nicknameEl.textContent = user.nickname || '--';
+      if (updateNickname) updateNickname.value = user.nickname || '';
+      phoneEl.textContent = maskPhone(user.phone);
+      roleEl.textContent = roleLabel(user.role);
+      creditsEl.textContent = typeof user.credits === 'number' ? user.credits : '--';
+      if (adminEntry) {
+        if (user.role === 'admin' || user.role === 'super_admin') {
+          adminEntry.classList.remove('hidden');
+        } else {
+          adminEntry.classList.add('hidden');
+        }
+      }
+    }
+
+    async function fetchMe() {
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+      const res = await fetch('/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) {
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+        return;
+      }
+      const user = await res.json();
+      setUser(user);
+      if (currentNickname) currentNickname.textContent = user.nickname || '--';
+    }
+
+    activationBtn.addEventListener('click', async () => {
+      const code = activationInput.value.trim();
+      if (!code) {
+        activationMsg.textContent = t('profile.activationPlaceholder', 'Please enter an activation code.');
+        activationMsg.className = 'text-xs text-rose-500';
+        return;
+      }
+      activationBtn.disabled = true;
+      activationMsg.textContent = t('buttons.applyCode', 'Applying code...');
+      activationMsg.className = 'text-xs text-gray-500';
+      try {
+        const res = await fetch('/api/activation/use', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ code })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || t('profile.activationFailed', 'Activation failed'));
+        creditsEl.textContent = data.credits ?? '--';
+        activationMsg.textContent = (t('profile.activationSuccess', 'Activation successful. Credits available: {credits}')).replace('{credits}', data.credits || '--');
+        activationMsg.className = 'text-xs text-green-600';
+      } catch (err) {
+        activationMsg.textContent = err.message || t('profile.activationFailed', 'Activation failed');
+        activationMsg.className = 'text-xs text-rose-500';
+      } finally {
+        activationBtn.disabled = false;
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      const ok = confirm(t('profile.logoutConfirm', 'Are you sure you want to log out?'));
+      if (!ok) return;
+      localStorage.removeItem('cardInsightAuth');
+      window.location.href = '/login.html';
+    });
+
+    async function handleNicknameUpdate() {
+      const nick = updateNickname?.value.trim();
+      updateMsg.textContent = '';
+      updateMsg.className = 'text-xs text-gray-500';
+      if (!nick) {
+        updateMsg.textContent = t('profileUpdate.nicknameRequired', 'Nickname cannot be empty');
+        updateMsg.className = 'text-xs text-rose-500';
+        return;
+      }
+      updateNicknameBtn.disabled = true;
+      try {
+        const res = await fetch('/api/user/updateProfile', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ nickname: nick })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || t('profileUpdate.failed', 'Update failed'));
+        nicknameEl.textContent = data?.user?.nickname || nick;
+        if (currentNickname) currentNickname.textContent = data?.user?.nickname || nick;
+        updateMsg.textContent = t('profileUpdate.success', 'Updated');
+        updateMsg.className = 'text-xs text-green-600';
+      } catch (err) {
+        updateMsg.textContent = err.message || t('profileUpdate.failed', 'Update failed');
+        updateMsg.className = 'text-xs text-rose-500';
+      } finally {
+        updateNicknameBtn.disabled = false;
+      }
+    }
+
+    async function handlePasswordChange() {
+      if (!currentPasswordInput || !newPasswordInput || !confirmPasswordInput) return;
+      const currentPwd = currentPasswordInput.value.trim();
+      const newPwd = newPasswordInput.value.trim();
+      const confirmPwd = confirmPasswordInput.value.trim();
+      passwordMsg.textContent = '';
+      passwordMsg.className = 'text-xs text-gray-500';
+      if (!currentPwd || !newPwd || !confirmPwd) {
+        passwordMsg.textContent = t('profileUpdate.failed', 'Update failed');
+        passwordMsg.className = 'text-xs text-rose-500';
+        return;
+      }
+      if (newPwd !== confirmPwd) {
+        passwordMsg.textContent = t('profileUpdate.confirmMismatch', 'New passwords do not match');
+        passwordMsg.className = 'text-xs text-rose-500';
+        return;
+      }
+      if (newPwd.length < 6) {
+        passwordMsg.textContent = t('profileUpdate.passwordShort', 'Password must be at least 6 characters');
+        passwordMsg.className = 'text-xs text-rose-500';
+        return;
+      }
+      changePasswordBtn.disabled = true;
+      try {
+        const res = await fetch('/api/user/changePassword', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`
+          },
+          body: JSON.stringify({ oldPassword: currentPwd, newPassword: newPwd })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          const msg =
+            data?.error === 'Current password is incorrect.'
+              ? t('profileUpdate.currentIncorrect', 'Current password is incorrect')
+              : data?.error;
+          throw new Error(msg || t('profileUpdate.passwordFailed', 'Password update failed'));
+        }
+        passwordMsg.textContent = t('profileUpdate.passwordSuccess', 'Password updated; please sign in again');
+        passwordMsg.className = 'text-xs text-green-600';
+        currentPasswordInput.value = '';
+        newPasswordInput.value = '';
+        confirmPasswordInput.value = '';
+        localStorage.removeItem('cardInsightAuth');
+        setTimeout(() => {
+          window.location.href = '/login.html';
+        }, 800);
+      } catch (err) {
+        passwordMsg.textContent = err.message || t('profileUpdate.passwordFailed', 'Password update failed');
+        passwordMsg.className = 'text-xs text-rose-500';
+      } finally {
+        changePasswordBtn.disabled = false;
+      }
+    }
+
+    if (updateNicknameBtn) {
+      updateNicknameBtn.addEventListener('click', handleNicknameUpdate);
+    }
+    if (changePasswordBtn) {
+      changePasswordBtn.addEventListener('click', handlePasswordChange);
+    }
+
+    deleteBtn.addEventListener('click', async () => {
+      const text = prompt(t('profile.deleteConfirm', 'Dangerous action: type "DELETE" to confirm account removal.'));
+      if (text !== 'DELETE') return;
+      try {
+        const res = await fetch('/api/profile/delete', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${getToken()}`
+          }
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || t('profile.deleteFailed', 'Delete failed'));
+        alert(t('profile.deleteSuccess', 'Account deleted'));
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+      } catch (err) {
+        alert(err.message || t('profile.deleteFailed', 'Delete failed'));
+      }
+    });
+
+    (async () => {
+      await initI18n();
+      updateLangToggle();
+      if (langToggle) {
+        langToggle.addEventListener('click', () => {
+          const next = window.i18n.getLang() === 'zh' ? 'en' : 'zh';
+          window.i18n.setLang(next);
+          window.location.reload();
+        });
+      }
+      fetchMe();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Admin console - activation codes, users, and stats for card readings." />
+  <title>Admin Console - Personality Color Card Analysis</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="/utils/i18n.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(79,123,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(109,213,250,0.16), transparent 30%),
+                  #F7F9FC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.78);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="relative min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-16 -top-10 w-80 h-80 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-96 h-96 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative max-w-5xl mx-auto px-4 py-8 sm:py-12">
+      <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div>
+          <p id="adminTag" class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]">Admin</p>
+          <h1 id="adminTitle" class="text-2xl font-bold text-gray-900">Admin console</h1>
+          <p id="adminDesc" class="text-sm text-gray-500 mt-1">Manage activation codes, users, and reading stats.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <a id="backLink" href="/parse.html" class="px-3 py-2 rounded-full text-sm font-semibold text-blue-600 bg-white border border-blue-100 shadow-sm hover:border-blue-200">Back to reading</a>
+          <a id="profileLink" href="/profile.html" class="px-3 py-2 rounded-full text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:border-gray-300">Profile</a>
+          <div class="flex items-center gap-1 text-xs text-gray-500">
+            <span id="langLabel" class="text-xs text-gray-500">Language</span>
+            <div class="flex items-center gap-1">
+              <button data-lang="zh" class="lang-btn px-1.5 py-0.5 text-xs text-gray-600">ZH</button>
+              <button data-lang="en" class="lang-btn px-1.5 py-0.5 text-xs text-gray-600">EN</button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="roleAlert" class="hidden glass border border-amber-200 text-amber-700 text-sm rounded-2xl px-4 py-3 mb-4">
+        Only admins and super admins can access this page. Please confirm your account permissions.
+      </div>
+
+      <section id="content" class="hidden space-y-6">
+        <!-- Overview -->
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100">
+          <h2 id="overviewTitle" class="text-sm font-semibold text-gray-700 mb-4">Reading overview</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm text-gray-700">
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3">
+              <p id="statUsersLabel" class="text-gray-500 text-xs mb-1">Total users</p>
+              <p class="text-xl font-bold text-blue-600" id="statUsers">--</p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3">
+              <p id="stat7Label" class="text-gray-500 text-xs mb-1">Readings (7d)</p>
+              <p class="text-xl font-bold text-blue-600" id="stat7">--</p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3">
+              <p id="stat30Label" class="text-gray-500 text-xs mb-1">Readings (30d)</p>
+              <p class="text-xl font-bold text-blue-600" id="stat30">--</p>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3 sm:col-span-1 col-span-2">
+              <p id="trendLabel" class="text-gray-500 text-xs mb-1">Trend (30d)</p>
+              <div id="trendBox" class="text-xs text-gray-700 max-h-24 overflow-y-auto space-y-1"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activation -->
+        <div class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 id="codesTitle" class="text-sm font-semibold text-gray-700">Activation codes</h2>
+            <div class="flex items-center gap-2 text-xs text-gray-500">
+              <label id="statusLabel">Status</label>
+              <select id="filterStatus" class="rounded-lg border border-gray-200 bg-white px-2 py-1 text-sm">
+                <option value="">All</option>
+                <option value="unused">Unused</option>
+                <option value="used">Used</option>
+              </select>
+            </div>
+          </div>
+          <div class="grid sm:grid-cols-2 gap-3">
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3 space-y-2">
+              <p id="batchCreateTitle" class="text-xs text-gray-500">Batch create</p>
+              <div class="grid grid-cols-2 gap-2 text-sm">
+                <input id="genCount" type="number" min="1" max="500" class="rounded-lg border border-gray-200 px-3 py-2" placeholder="Quantity (<=500)" />
+                <input id="genUses" type="number" min="1" class="rounded-lg border border-gray-200 px-3 py-2" placeholder="Uses per code" />
+                <input id="genBatch" type="text" class="rounded-lg border border-gray-200 px-3 py-2 col-span-2" placeholder="Batch ID (optional)" />
+                <input id="genExpire" type="datetime-local" class="rounded-lg border border-gray-200 px-3 py-2 col-span-2" />
+              </div>
+              <button id="genBtn" class="w-full rounded-lg bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] text-white text-sm font-semibold py-2 hover:shadow-md transition">Generate</button>
+              <div id="genResult" class="text-xs text-gray-600 max-h-32 overflow-y-auto space-y-1"></div>
+            </div>
+            <div class="rounded-xl border border-gray-100 bg-white/80 p-3 space-y-2">
+              <p id="codeListTitle" class="text-xs text-gray-500">Code list</p>
+              <div id="codeList" class="text-xs text-gray-700 max-h-56 overflow-y-auto space-y-2"></div>
+              <button id="refreshCodes" class="w-full rounded-lg border border-gray-200 bg-white text-sm py-2 hover:border-blue-200 hover:text-blue-600 transition">Refresh list</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Users (super_admin only) -->
+        <div id="userPanel" class="hidden glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="userPanelTitle" class="text-sm font-semibold text-gray-700">User management (super admin only)</h2>
+            <input id="userSearch" type="text" class="rounded-lg border border-gray-200 px-3 py-2 text-sm" placeholder="Search by phone or name" />
+          </div>
+          <div id="userList" class="text-xs text-gray-700 space-y-2 max-h-72 overflow-y-auto"></div>
+          <button id="refreshUsers" class="w-full rounded-lg border border-gray-200 bg-white text-sm py-2 hover:border-blue-200 hover:text-blue-600 transition">Refresh list</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const statUsers = document.getElementById('statUsers');
+    const stat7 = document.getElementById('stat7');
+    const stat30 = document.getElementById('stat30');
+    const trendBox = document.getElementById('trendBox');
+    const roleAlert = document.getElementById('roleAlert');
+    const content = document.getElementById('content');
+    const filterStatus = document.getElementById('filterStatus');
+    const codeList = document.getElementById('codeList');
+    const refreshCodes = document.getElementById('refreshCodes');
+    const genCount = document.getElementById('genCount');
+    const genUses = document.getElementById('genUses');
+    const genBatch = document.getElementById('genBatch');
+    const genExpire = document.getElementById('genExpire');
+    const genBtn = document.getElementById('genBtn');
+    const genResult = document.getElementById('genResult');
+    const userPanel = document.getElementById('userPanel');
+    const userSearch = document.getElementById('userSearch');
+    const userList = document.getElementById('userList');
+    const refreshUsers = document.getElementById('refreshUsers');
+    const langButtons = document.querySelectorAll('.lang-btn');
+    const lang = window.i18n?.getLang() || 'zh';
+    let translations = {};
+
+    function t(key, fallback = '') {
+      if (!translations || !key) return fallback;
+      const value = key.split('.').reduce((acc, part) => {
+        if (acc && acc[part] !== undefined) return acc[part];
+        return undefined;
+      }, translations);
+      return value === undefined ? fallback : value;
+    }
+
+    async function initI18n() {
+      translations = await window.i18n.loadTranslations(lang);
+      document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+      document.title = t('app.browserTitle', document.title);
+      window.i18n.applyTranslations(translations, [
+        { selector: '#adminTag', key: 'admin.title' },
+        { selector: '#adminTitle', key: 'admin.title' },
+        { selector: '#adminDesc', key: 'admin.roleAlert' },
+        { selector: '#backLink', key: 'profile.back' },
+        { selector: '#profileLink', key: 'nav.profile' },
+        { selector: '#langLabel', key: 'language.label' },
+        { selector: '#roleAlert', key: 'admin.roleAlert' },
+        { selector: '#overviewTitle', key: 'admin.overview' },
+        { selector: '#statUsersLabel', key: 'admin.totalUsers' },
+        { selector: '#stat7Label', key: 'admin.readings7' },
+        { selector: '#stat30Label', key: 'admin.readings30' },
+        { selector: '#trendLabel', key: 'admin.trend' },
+        { selector: '#codesTitle', key: 'admin.codes' },
+        { selector: '#statusLabel', key: 'admin.status' },
+        { selector: '#batchCreateTitle', key: 'admin.batchCreate' },
+        { selector: '#genBtn', key: 'admin.generate' },
+        { selector: '#codeListTitle', key: 'admin.codeList' },
+        { selector: '#refreshCodes', key: 'admin.refresh' },
+        { selector: '#userPanelTitle', key: 'admin.userPanel' },
+        { selector: '#refreshUsers', key: 'admin.refresh' }
+      ]);
+      document.querySelector('[data-lang="zh"]').textContent = t('language.zh', 'ZH');
+      document.querySelector('[data-lang="en"]').textContent = t('language.en', 'EN');
+      genCount.setAttribute('placeholder', t('admin.quantity', genCount.placeholder));
+      genUses.setAttribute('placeholder', t('admin.uses', genUses.placeholder));
+      genBatch.setAttribute('placeholder', t('admin.batchId', genBatch.placeholder));
+      userSearch.setAttribute('placeholder', t('admin.searchPlaceholder', userSearch.placeholder));
+      if (filterStatus?.options?.length >= 3) {
+        filterStatus.options[0].text = t('admin.all', 'All');
+        filterStatus.options[1].text = t('admin.unused', 'Unused');
+        filterStatus.options[2].text = t('admin.used', 'Used');
+      }
+      langButtons.forEach((btn) => {
+        const targetLang = btn.dataset.lang || 'zh';
+        if (targetLang === lang) {
+          btn.classList.add('bg-gray-100', 'text-gray-900', 'font-semibold', 'rounded-md', 'border', 'border-gray-200');
+        } else {
+          btn.classList.remove('bg-gray-100', 'text-gray-900', 'font-semibold', 'rounded-md', 'border', 'border-gray-200');
+          btn.classList.add('text-gray-500');
+        }
+        btn.addEventListener('click', () => {
+          window.i18n.setLang(targetLang);
+          window.location.reload();
+        });
+      });
+    }
+
+    function getToken() {
+      try {
+        const raw = localStorage.getItem('cardInsightAuth');
+        if (!raw) return '';
+        const parsed = JSON.parse(raw);
+        return parsed?.token || '';
+      } catch (err) {
+        return '';
+      }
+    }
+
+    function requireAuthRole(me) {
+      if (!me || !me.role || !['admin', 'super_admin'].includes(me.role)) {
+        roleAlert.classList.remove('hidden');
+        return false;
+      }
+      roleAlert.classList.add('hidden');
+      content.classList.remove('hidden');
+      if (me.role === 'super_admin') {
+        userPanel.classList.remove('hidden');
+      }
+      return true;
+    }
+
+    function renderTrend(trend) {
+      trendBox.innerHTML = '';
+      if (!trend || !trend.length) {
+        trendBox.innerHTML = `<div class="text-gray-400">${t('admin.noData', 'No data yet.')}</div>`;
+        return;
+      }
+      trend.forEach((t) => {
+        const div = document.createElement('div');
+        div.textContent = `${t.day}: ${t.cnt}`;
+        trendBox.appendChild(div);
+      });
+    }
+
+    async function loadStats() {
+      const res = await fetch('/api/admin/stats/overview', {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      statUsers.textContent = data.total_users ?? '--';
+      stat7.textContent = data.analyses_last7 ?? '--';
+      stat30.textContent = data.analyses_last30 ?? '--';
+      renderTrend(data.trend);
+    }
+
+    function renderCodes(items) {
+      codeList.innerHTML = '';
+      if (!items || !items.length) {
+        codeList.innerHTML = `<div class="text-gray-400">${t('admin.noCodes', 'No activation codes yet.')}</div>`;
+        return;
+      }
+      items.forEach((c) => {
+        const div = document.createElement('div');
+        div.className = 'rounded-lg border border-gray-100 bg-white/80 p-2';
+        div.innerHTML = `
+          <div class="flex justify-between"><span class="font-semibold">${c.code}</span><span class="text-xs text-gray-500">${c.status}</span></div>
+          <div class="text-[11px] text-gray-500">${t('admin.uses', 'Uses')}:${c.total_uses} | ${t('admin.batchId', 'Batch')}:${c.batch_id || '-'} | ${t('admin.expireLabel', 'Expire')}:${c.expired_at || t('admin.none', 'none')}</div>
+        `;
+        codeList.appendChild(div);
+      });
+    }
+
+    async function loadCodes() {
+      const params = new URLSearchParams();
+      if (filterStatus.value) params.append('status', filterStatus.value);
+      const res = await fetch(`/api/activation/list?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      if (!res.ok) {
+        codeList.innerHTML = `<div class="text-rose-500 text-sm">${t('admin.loadFailed', 'Failed to load.')}</div>`;
+        return;
+      }
+      const data = await res.json();
+      renderCodes(data.items || []);
+    }
+
+    genBtn.addEventListener('click', async () => {
+      genBtn.disabled = true;
+      genResult.textContent = t('admin.genCreating', 'Creating...');
+      const payload = {
+        count: Number(genCount.value || 0),
+        uses_per_code: Number(genUses.value || 0),
+        batch_id: genBatch.value || undefined,
+        expired_at: genExpire.value || undefined
+      };
+      try {
+        const res = await fetch('/api/activation/batch-generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data?.error || t('admin.genFailed', 'Generation failed'));
+        genResult.innerHTML = data.codes
+          .map((c) => `<div class="font-mono text-xs">${c.code} (${c.total_uses})</div>`)
+          .join('');
+        await loadCodes();
+      } catch (err) {
+        genResult.textContent = err.message || t('admin.genFailed', 'Generation failed');
+      } finally {
+        genBtn.disabled = false;
+      }
+    });
+
+    refreshCodes.addEventListener('click', loadCodes);
+    filterStatus.addEventListener('change', loadCodes);
+
+    function renderUsers(items, role) {
+      userList.innerHTML = '';
+      if (!items || !items.length) {
+        userList.innerHTML = `<div class="text-gray-400">${t('admin.noUsers', 'No users found.')}</div>`;
+        return;
+      }
+      items.forEach((u) => {
+        const div = document.createElement('div');
+        div.className = 'rounded-lg border border-gray-100 bg-white/80 p-2 space-y-1';
+        const action =
+          u.role === 'admin'
+            ? `<button data-role="normal" class="px-2 py-1 text-xs rounded border border-gray-200 hover:border-amber-200">${t('admin.removeAdmin', 'Remove admin')}</button>`
+            : `<button data-role="admin" class="px-2 py-1 text-xs rounded border border-blue-200 text-blue-600 hover:border-blue-300">${t('admin.makeAdmin', 'Make admin')}</button>`;
+        const resetBtn =
+          role === 'super_admin'
+            ? `<button data-action="reset" class="px-2 py-1 text-xs rounded border border-gray-200 hover:border-blue-200">${t('admin.resetPassword', 'Reset password')}</button>`
+            : '';
+        div.innerHTML = `
+          <div class="flex justify-between text-sm">
+            <span class="font-semibold">${u.nickname || '--'} (${u.phone})</span>
+            <span class="text-xs text-gray-500">${u.role}</span>
+          </div>
+          <div class="text-[11px] text-gray-500 flex justify-between">
+            <span>credits: ${u.credits ?? '--'}</span>
+            <span>${u.created_at || ''}</span>
+          </div>
+          <div class="flex justify-end gap-2">${role === 'super_admin' ? `${action}${resetBtn ? resetBtn : ''}` : ''}</div>
+        `;
+        if (role === 'super_admin') {
+          const roleBtn = div.querySelector('button[data-role]');
+          if (roleBtn) {
+            roleBtn.addEventListener('click', async () => {
+              roleBtn.disabled = true;
+              try {
+                const res = await fetch(`/api/admin/users/${u.id}/set-role`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${getToken()}`
+                  },
+                  body: JSON.stringify({ role: roleBtn.dataset.role })
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.error || t('admin.actionFailed', 'Action failed'));
+                await loadUsers(role);
+              } catch (err) {
+                alert(err.message || t('admin.actionFailed', 'Action failed'));
+              } finally {
+                roleBtn.disabled = false;
+              }
+            });
+          }
+          const reset = div.querySelector('button[data-action="reset"]');
+          if (reset) {
+            reset.addEventListener('click', async () => {
+              const confirmed = confirm(t('admin.resetPasswordConfirm', "Reset this user's password to 123456?"));
+              if (!confirmed) return;
+              reset.disabled = true;
+              try {
+                const res = await fetch(`/api/admin/users/${u.id}/reset-password`, {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${getToken()}`
+                  },
+                  body: JSON.stringify({})
+                });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data?.error || t('admin.resetPasswordFailed', 'Reset failed'));
+                alert(t('admin.resetPasswordSuccess', 'Password reset to 123456'));
+              } catch (err) {
+                alert(err.message || t('admin.resetPasswordFailed', 'Reset failed'));
+              } finally {
+                reset.disabled = false;
+              }
+            });
+          }
+        }
+        userList.appendChild(div);
+      });
+    }
+
+    async function loadUsers(role) {
+      if (role !== 'super_admin') return;
+      const params = new URLSearchParams();
+      if (userSearch.value) params.append('q', userSearch.value);
+      const res = await fetch(`/api/admin/users?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${getToken()}` }
+      });
+      if (!res.ok) {
+        userList.innerHTML = `<div class="text-rose-500 text-sm">${t('admin.failLoadUsers', 'Failed to load.')}</div>`;
+        return;
+      }
+      const data = await res.json();
+      renderUsers(data.items || [], role);
+    }
+
+    refreshUsers.addEventListener('click', () => loadUsers(currentRole));
+    userSearch.addEventListener('input', () => loadUsers(currentRole));
+
+    let currentRole = '';
+    (async () => {
+      await initI18n();
+      const token = getToken();
+      if (!token) {
+        window.location.href = '/login.html';
+        return;
+      }
+      const meRes = await fetch('/auth/me', { headers: { Authorization: `Bearer ${token}` } });
+      if (!meRes.ok) {
+        localStorage.removeItem('cardInsightAuth');
+        window.location.href = '/login.html';
+        return;
+      }
+      const me = await meRes.json();
+      currentRole = me.role;
+      if (!requireAuthRole(me)) return;
+      await loadStats();
+      await loadCodes();
+      await loadUsers(me.role);
+    })();
+  </script>
+</body>
+</html>
