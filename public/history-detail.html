@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="History Detail - Moments Optimizer" data-i18n="history.detailMeta" data-i18n-attr="content" />
+  <title data-i18n="history.detailPageTitle">History Detail - Moments Optimizer</title>
+  <link rel="stylesheet" href="/css/tailwind.build.css" />
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/history.css" />
+  <script src="/utils/i18n.js" defer></script>
+  <script src="/js/libs/marked.min.js" defer></script>
+  <script src="/js/libs/html2canvas.min.js" defer></script>
+  <script src="/js/common.js" defer></script>
+  <script src="/js/history-detail.js" defer></script>
+</head>
+<body class="min-h-screen">
+  <div class="relative min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-16 -top-10 w-72 h-72 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-80 h-80 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <header class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]" data-i18n="history.detailTagline">History detail</p>
+          <h1 class="text-2xl font-bold text-gray-900" data-i18n="history.detailTitlePage">Analysis detail</h1>
+          <p class="text-sm text-gray-500" data-i18n="history.detailSubtitle">Full content, tokens, and export.</p>
+        </div>
+        <div class="flex gap-2">
+          <a href="/history.html" class="px-3 py-2 rounded-full text-sm font-semibold text-blue-600 bg-white border border-blue-100 shadow-sm hover:border-blue-200" data-i18n="history.backToHistory">Back to History</a>
+          <a href="/parse.html" class="px-3 py-2 rounded-full text-sm font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-blue-200 hover:text-blue-600 transition" data-i18n="history.backToParse">Back to Parse</a>
+          <button id="languageToggle" class="px-3 py-2 rounded-full text-sm font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-blue-200 hover:text-blue-600 transition">Switch</button>
+        </div>
+      </header>
+
+      <section class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div class="grid md:grid-cols-4 gap-3 text-sm text-gray-700">
+          <div><span class="text-gray-500" data-i18n="history.time">Time</span>: <span id="detailTime">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.duration">Duration</span>: <span id="detailDuration">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.tokens">Tokens</span>: <span id="detailTokens">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.model">Model</span>: <span id="detailModel">--</span></div>
+        </div>
+        <div class="flex gap-2">
+          <button id="exportBtn" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] shadow-sm hover:shadow-md transition" data-i18n="history.export">Export</button>
+          <button id="copyOutputBtn" class="px-4 py-2 rounded-xl text-sm font-semibold text-blue-700 bg-white border border-blue-100 shadow-sm hover:border-blue-200 transition" data-i18n="history.copyOutput">Copy output</button>
+        </div>
+        <div id="exportPreviewArea" class="hidden rounded-xl border border-gray-100 bg-gray-50 p-2 flex justify-center">
+          <img id="exportPreviewImage" alt="export preview" class="max-h-32 object-contain" />
+        </div>
+      </section>
+
+      <section id="exportArea" class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.image">Image</p>
+          <div id="detailImageWrapper" class="rounded-xl border border-gray-100 bg-gray-50 p-2 flex justify-center">
+            <img id="detailImage" alt="history image" class="max-h-80 object-contain" />
+          </div>
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.inputFull">Input</p>
+          <pre id="detailInput" class="rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm text-gray-800 whitespace-pre-wrap"></pre>
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.outputFull">Output</p>
+          <article id="detailOutput" class="markdown-body prose max-w-none text-gray-800 leading-relaxed"></article>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

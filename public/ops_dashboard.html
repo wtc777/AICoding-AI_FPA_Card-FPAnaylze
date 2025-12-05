@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<title>朋友圈优�?- 运维总控看板</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<style>
+		:root {
+			/* 基础色盘 - 更深邃、更干净的午夜蓝�?*/
+			--bg-app: #020617;
+			--bg-card: rgba(15, 23, 42, 0.75); /* 半透明以支持模�?*/
+			--bg-card-hover: rgba(30, 41, 59, 0.85);
+			
+			/* 边框与分割线 */
+			--border-subtle: rgba(148, 163, 184, 0.1);
+			--border-highlight: rgba(56, 189, 248, 0.3);
+
+			/* 品牌色与功能�?*/
+			--primary: #38bdf8;
+			--primary-glow: rgba(56, 189, 248, 0.4);
+			--accent: #c084fc;
+			
+			/* 状态色 - 调整为更高级的视感，不刺�?*/
+			--danger-bg: rgba(239, 68, 68, 0.15);
+			--danger-text: #fca5a5;
+			--danger-border: rgba(239, 68, 68, 0.3);
+			
+			--warning-bg: rgba(234, 179, 8, 0.15);
+			--warning-text: #fcd34d;
+			--warning-border: rgba(234, 179, 8, 0.3);
+			
+			--success-bg: rgba(34, 197, 94, 0.15);
+			--success-text: #86efac;
+			--success-border: rgba(34, 197, 94, 0.3);
+
+			/* 文字 */
+			--text-main: #f8fafc;
+			--text-sub: #94a3b8;
+			--text-dim: #475569;
+
+			/* 阴影 */
+			--shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.15);
+			--shadow-glow: 0 0 15px rgba(56, 189, 248, 0.15);
+		}
+
+		*, *::before, *::after {
+			box-sizing: border-box;
+		}
+
+		body {
+			margin: 0;
+			font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+			background-color: var(--bg-app);
+			/* 增加全局的深色噪点背景，增加质感 */
+			background-image: 
+				radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.15) 0px, transparent 50%), 
+				radial-gradient(at 98% 1%, rgba(192, 132, 252, 0.15) 0px, transparent 50%);
+			background-attachment: fixed;
+			color: var(--text-main);
+			-webkit-font-smoothing: antialiased;
+			line-height: 1.5;
+		}
+
+		.page-wrap {
+			min-height: 100vh;
+			padding: 24px 32px;
+		}
+
+		.dashboard {
+			max-width: 1600px; /* 加宽一点以适应现代大屏 */
+			margin: 0 auto;
+		}
+
+		/* --- Header 优化 --- */
+
+		.header {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			margin-bottom: 32px;
+			padding: 0 4px;
+		}
+
+		.header-left {
+			display: flex;
+			align-items: center;
+			gap: 16px;
+		}
+
+		.logo-mark {
+			width: 48px;
+			height: 48px;
+			border-radius: 12px;
+			background: linear-gradient(135deg, #0ea5e9, #a855f7);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+			position: relative;
+		}
+		
+		/* Logo 内部增加光泽 */
+		.logo-mark::after {
+			content: '';
+			position: absolute;
+			top: 0; left: 0; right: 0; bottom: 0;
+			border-radius: inherit;
+			border: 1px solid rgba(255,255,255,0.2);
+			background: linear-gradient(to bottom, rgba(255,255,255,0.15), transparent);
+		}
+
+		.logo-mark span {
+			font-size: 20px;
+			font-weight: 800;
+			color: #fff;
+			text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+		}
+
+		.header-title-block h1 {
+			margin: 0;
+			font-size: 24px;
+			font-weight: 600;
+			letter-spacing: -0.02em;
+			color: #f1f5f9;
+		}
+
+		.header-title-block p {
+			margin: 4px 0 0;
+			font-size: 13px;
+			color: var(--text-sub);
+			font-weight: 400;
+		}
+
+		.header-controls {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.chip {
+			font-size: 12px;
+			padding: 6px 12px;
+			border-radius: 99px;
+			border: 1px solid rgba(34, 197, 94, 0.2);
+			background: rgba(34, 197, 94, 0.05);
+			color: #4ade80;
+			display: inline-flex;
+			align-items: center;
+			gap: 6px;
+			font-weight: 500;
+		}
+
+		/* 呼吸灯动�?*/
+		@keyframes pulse-green {
+			0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.4); }
+			70% { box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
+			100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+		}
+
+		.icon-dot {
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: #22c55e;
+			animation: pulse-green 2s infinite;
+		}
+
+		.range-selector {
+			background: rgba(15, 23, 42, 0.8);
+			border: 1px solid var(--border-subtle);
+			border-radius: 99px;
+			padding: 4px;
+			display: flex;
+			gap: 2px;
+		}
+
+		.range-selector span.tag {
+			padding: 6px 16px;
+			border-radius: 99px;
+			font-size: 12px;
+			color: var(--text-sub);
+			cursor: pointer;
+			transition: all 0.2s;
+		}
+
+		.range-selector span.tag:hover {
+			color: #fff;
+		}
+
+		.range-selector span.tag.active {
+			background: var(--border-subtle);
+			color: #fff;
+			font-weight: 500;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+			border: 1px solid rgba(255,255,255,0.05);
+		}
+
+		.fake-input {
+			border: 1px solid var(--border-subtle);
+			background: rgba(15, 23, 42, 0.5);
+			border-radius: 8px;
+			padding: 6px 16px;
+			min-width: 200px;
+		}
+
+		.fake-input-label {
+			font-size: 10px;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+			color: var(--text-dim);
+		}
+
+		.fake-input-value {
+			font-size: 13px;
+			color: var(--text-main);
+			font-family: 'Roboto Mono', monospace; /* 等宽字体显示时间更专�?*/
+		}
+
+		/* --- KPI Cards 优化 --- */
+
+		.kpi-grid {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); /* 响应�?*/
+			gap: 16px;
+			margin-bottom: 24px;
+		}
+
+		.kpi-card {
+			background: var(--bg-card);
+			backdrop-filter: blur(12px);
+			-webkit-backdrop-filter: blur(12px);
+			border-radius: 16px;
+			padding: 16px;
+			border: 1px solid var(--border-subtle);
+			box-shadow: var(--shadow-card);
+			transition: transform 0.2s, border-color 0.2s;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.kpi-card:hover {
+			transform: translateY(-2px);
+			border-color: var(--border-highlight);
+		}
+		
+		/* 顶部高亮�?*/
+		.kpi-card::before {
+			content: "";
+			position: absolute;
+			top: 0; left: 0; right: 0;
+			height: 1px;
+			background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+		}
+
+		.kpi-label {
+			font-size: 13px;
+			color: var(--text-sub);
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 8px;
+		}
+
+		.kpi-value {
+			font-size: 28px;
+			font-weight: 700;
+			margin-bottom: 8px;
+			color: #fff;
+			letter-spacing: -0.02em;
+			/* 数字渐变填充，更有质�?*/
+			background: linear-gradient(180deg, #fff 20%, #cbd5e1 100%);
+			-webkit-background-clip: text;
+			-webkit-text-fill-color: transparent;
+			background-clip: text;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.kpi-sub {
+			font-size: 12px;
+			color: var(--text-dim);
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			height: 20px;
+		}
+
+		.kpi-trend {
+			font-size: 12px;
+			font-weight: 600;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+		}
+		.kpi-trend.up { color: #4ade80; text-shadow: 0 0 10px rgba(74, 222, 128, 0.2); }
+		.kpi-trend.down { color: #f87171; }
+
+		.mini-bar {
+			height: 4px;
+			width: 60px;
+			background: rgba(255,255,255,0.1);
+			border-radius: 2px;
+		}
+		.mini-bar-fill {
+			height: 100%;
+			border-radius: 2px;
+			background: #38bdf8;
+			box-shadow: 0 0 8px #38bdf8;
+		}
+
+		/* --- Main Layout & Card Containers --- */
+
+		.main-layout {
+			display: grid;
+			grid-template-columns: 2.1fr 2.1fr 1.6fr;
+			gap: 20px;
+			align-items: flex-start;
+		}
+
+		.column {
+			display: flex;
+			flex-direction: column;
+			gap: 20px;
+		}
+
+		.card {
+			background: var(--bg-card);
+			border-radius: 16px;
+			border: 1px solid var(--border-subtle);
+			padding: 20px;
+			box-shadow: var(--shadow-card);
+			position: relative;
+			transition: box-shadow 0.3s;
+		}
+		
+		.card:hover {
+			box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+			border-color: rgba(148, 163, 184, 0.2);
+		}
+
+		.card-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: flex-start;
+			margin-bottom: 16px;
+			padding-bottom: 12px;
+			border-bottom: 1px solid rgba(255,255,255,0.03);
+		}
+
+		.card-title {
+			font-size: 15px;
+			font-weight: 600;
+			color: #fff;
+			display: flex;
+			align-items: center;
+			gap: 8px;
+			margin-bottom: 2px;
+		}
+
+		/* 标题旁的 Pill 标签优化 */
+		.card-title-pill {
+			font-size: 10px;
+			padding: 2px 8px;
+			border-radius: 4px;
+			background: rgba(56, 189, 248, 0.1);
+			color: #7dd3fc;
+			border: 1px solid rgba(56, 189, 248, 0.2);
+			font-weight: 500;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+
+		.card-sub {
+			font-size: 12px;
+			color: var(--text-dim);
+		}
+
+		.card-badge {
+			font-size: 11px;
+			color: var(--text-sub);
+			padding: 4px 10px;
+			background: rgba(255,255,255,0.03);
+			border-radius: 6px;
+			border: 1px solid rgba(255,255,255,0.05);
+			white-space: nowrap;
+		}
+
+		/* --- Specific Modules --- */
+
+		/* 1. Trend Block */
+		.trend-row {
+			display: flex;
+			gap: 12px;
+		}
+
+		.trend-block {
+			flex: 1;
+			padding: 12px 14px;
+			border-radius: 12px;
+			/* 渐变背景让数据块更突�?*/
+			background: linear-gradient(180deg, rgba(30, 41, 59, 0.5), rgba(15, 23, 42, 0.5));
+			border: 1px solid rgba(255,255,255,0.05);
+		}
+
+		.trend-label {
+			font-size: 12px;
+			margin-bottom: 8px;
+			display: flex;
+			justify-content: space-between;
+			color: var(--text-sub);
+		}
+
+		.trend-main {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+			margin-bottom: 8px;
+		}
+
+		.trend-main span.value {
+			font-size: 20px;
+			font-weight: 700;
+			color: #fff;
+		}
+
+		.trend-tag {
+			font-size: 10px;
+			padding: 2px 6px;
+			border-radius: 4px;
+			background: #1e293b;
+			color: #94a3b8;
+			border: 1px solid rgba(255,255,255,0.05);
+		}
+
+		.trend-mini-chart {
+			height: 36px;
+			border-radius: 6px;
+			/* CSS 绘制简易波浪线背景 */
+			background: 
+				linear-gradient(to right, rgba(56, 189, 248, 0.1) 1px, transparent 1px),
+				linear-gradient(to bottom, rgba(56, 189, 248, 0.2) 20%, transparent 20%);
+			background-size: 20% 100%, 100% 100%;
+			position: relative;
+			opacity: 0.6;
+		}
+		/* �?Mask �?Gradient 模拟折线 */
+		.trend-mini-chart::before {
+			content: '';
+			position: absolute;
+			bottom: 0; left: 0; right: 0; top: 10px;
+			background: linear-gradient(90deg, 
+				transparent 0%, 
+				rgba(56, 189, 248, 0.2) 20%, 
+				rgba(56, 189, 248, 0.4) 50%, 
+				rgba(56, 189, 248, 0.1) 100%);
+			clip-path: polygon(0 100%, 0 60%, 20% 40%, 40% 70%, 60% 30%, 80% 50%, 100% 20%, 100% 100%);
+		}
+
+		/* 2. Funnel */
+		.funnel {
+			display: flex;
+			flex-direction: column;
+			gap: 12px;
+			margin-top: 8px;
+		}
+
+		.funnel-step {
+			display: flex;
+			align-items: center;
+			gap: 12px;
+		}
+
+		.funnel-label {
+			width: 80px;
+			font-size: 12px;
+			color: var(--text-sub);
+			text-align: right;
+		}
+
+		.funnel-bar-wrap {
+			flex: 1;
+			height: 8px;
+			border-radius: 4px;
+			background: rgba(255, 255, 255, 0.05);
+			overflow: hidden;
+		}
+
+		.funnel-bar-fill {
+			height: 100%;
+			border-radius: 4px;
+			/* 更有质感的渐�?*/
+			background: linear-gradient(90deg, #38bdf8, #818cf8);
+			box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+			position: relative;
+		}
+		/* 增加条纹光效 */
+		.funnel-bar-fill::after {
+			content: "";
+			position: absolute;
+			top: 0; bottom: 0; left: 0; right: 0;
+			background: linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent);
+			background-size: 12px 12px;
+			opacity: 0.3;
+		}
+
+		.funnel-meta {
+			width: 40px;
+			text-align: right;
+			font-size: 12px;
+			font-weight: 600;
+			color: #fff;
+		}
+
+		/* 3. Segments */
+		.segment-list {
+			display: grid;
+			gap: 10px;
+		}
+
+		.segment-item {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			padding: 8px 0;
+			border-bottom: 1px solid rgba(255,255,255,0.03);
+		}
+		.segment-item:last-child { border-bottom: none; }
+
+		.segment-label {
+			display: flex;
+			align-items: center;
+			gap: 10px;
+			font-size: 13px;
+			color: var(--text-sub);
+		}
+
+		.segment-dot {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			box-shadow: 0 0 5px currentColor;
+		}
+		.segment-dot.high { color: #22c55e; background: currentColor; }
+		.segment-dot.mid { color: #f97316; background: currentColor; }
+		.segment-dot.low { color: #eab308; background: currentColor; }
+		.segment-dot.sleep { color: #64748b; background: currentColor; box-shadow: none; }
+
+		.segment-value {
+			font-weight: 600;
+			color: #f1f5f9;
+			font-size: 13px;
+		}
+
+		.segment-extra {
+			font-size: 11px;
+			color: var(--text-dim);
+			background: rgba(255,255,255,0.03);
+			padding: 2px 6px;
+			border-radius: 4px;
+		}
+
+		/* 4. Charts Placeholders (CSS Only Visuals) */
+		.chart-placeholder {
+			height: 140px;
+			border-radius: 8px;
+			/* 网格背景 */
+			background-color: rgba(0,0,0,0.2);
+			background-image: 
+				linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+				linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+			background-size: 20px 20px;
+			position: relative;
+			overflow: hidden;
+			border: 1px solid rgba(255,255,255,0.05);
+		}
+		
+		/* 模拟折线图效�?*/
+		.chart-placeholder::before {
+			content: '';
+			position: absolute;
+			bottom: 20px; left: 10px; right: 10px; height: 60%;
+			background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.5) 100%);
+			-webkit-mask: linear-gradient(to top, #000 0%, transparent 100%); /* 渐变淡出 */
+			/* 这里�?clip-path 模拟一个随机走�?*/
+			clip-path: polygon(0% 100%, 10% 80%, 20% 60%, 30% 70%, 40% 40%, 50% 50%, 60% 20%, 70% 30%, 80% 10%, 90% 40%, 100% 5%, 100% 100%);
+			opacity: 0.3;
+		}
+		
+		/* 模拟柱状图效�?(针对第二个图�? */
+		.chart-placeholder.small::before {
+			clip-path: none;
+			background: transparent;
+			/* 使用 repeating-linear-gradient 模拟柱子 */
+			background-image: repeating-linear-gradient(90deg, 
+				rgba(56, 189, 248, 0.2) 0px, 
+				rgba(56, 189, 248, 0.2) 10px, 
+				transparent 10px, 
+				transparent 20px
+			);
+			height: 50%;
+			bottom: 0;
+			-webkit-mask: none;
+		}
+
+		.chart-placeholder.small {
+			height: 100px;
+		}
+
+		.chart-placeholder::after {
+			/* 标签文字样式优化 */
+			font-family: monospace;
+			letter-spacing: 0.05em;
+			text-transform: uppercase;
+			color: rgba(255,255,255,0.4);
+			font-weight: 500;
+			background: rgba(0,0,0,0.4);
+			padding: 4px 8px;
+			border-radius: 4px;
+			backdrop-filter: blur(2px);
+		}
+
+		.chart-meta-row {
+			margin-top: 12px;
+			display: flex;
+			justify-content: space-between;
+			font-size: 11px;
+			color: var(--text-sub);
+		}
+
+		.badge-pill {
+			padding: 2px 8px;
+			border-radius: 4px;
+			font-weight: 500;
+			font-size: 11px;
+		}
+		.badge-pill.success { background: var(--success-bg); color: var(--success-text); }
+		.badge-pill.danger { background: var(--danger-bg); color: var(--danger-text); }
+
+		/* 5. Token Grid */
+		.token-grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 8px;
+			margin-bottom: 12px;
+		}
+
+		.token-item {
+			padding: 10px;
+			border-radius: 8px;
+			background: rgba(255,255,255,0.02);
+			border: 1px solid rgba(255,255,255,0.05);
+			display: flex;
+			flex-direction: column;
+		}
+
+		.token-label {
+			font-size: 11px;
+			color: var(--text-dim);
+			margin-bottom: 4px;
+		}
+
+		.token-value {
+			font-size: 14px;
+			font-weight: 700;
+			color: #e2e8f0;
+			font-family: 'Roboto Mono', monospace;
+		}
+
+		.token-sub {
+			font-size: 10px;
+			color: var(--text-sub);
+			margin-top: auto; /* Push to bottom */
+			padding-top: 4px;
+		}
+
+		/* 6. Activation & Quota */
+		.activation-stat {
+			display: flex;
+			justify-content: space-between;
+			margin-bottom: 8px;
+			font-size: 12px;
+			color: var(--text-sub);
+		}
+
+		.progress-wrap {
+			height: 6px;
+			background: rgba(255,255,255,0.1);
+			border-radius: 99px;
+			margin-top: 4px;
+			margin-bottom: 12px;
+		}
+
+		.progress-fill {
+			background: linear-gradient(90deg, #22c55e, #38bdf8);
+			box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+		}
+
+		.quota-table {
+			width: 100%;
+			border-collapse: separate;
+			border-spacing: 0 4px; /* Row gap */
+			margin-top: 8px;
+		}
+
+		.quota-table th {
+			font-size: 11px;
+			color: var(--text-dim);
+			font-weight: 500;
+			text-align: left;
+			padding: 0 8px 4px;
+		}
+
+		.quota-table td {
+			background: rgba(255,255,255,0.02);
+			padding: 8px;
+			font-size: 12px;
+			color: var(--text-main);
+		}
+		
+		.quota-table td:first-child { border-top-left-radius: 6px; border-bottom-left-radius: 6px; }
+		.quota-table td:last-child { border-top-right-radius: 6px; border-bottom-right-radius: 6px; }
+
+		.quota-name { display: flex; align-items: center; gap: 6px; }
+		.quota-remaining.low { color: #f87171; font-weight: 700; }
+		
+		.quota-tag {
+			font-size: 10px;
+			color: var(--text-dim);
+			background: transparent;
+			border: 1px solid rgba(255,255,255,0.1);
+		}
+
+		/* 7. Alerts */
+		.alert-list {
+			display: flex;
+			flex-direction: column;
+			gap: 8px;
+		}
+
+		.alert-item {
+			display: flex;
+			gap: 12px;
+			padding: 12px;
+			border-radius: 8px;
+			/* 默认红色背景 */
+			background: var(--danger-bg);
+			border: 1px solid var(--danger-border);
+			transition: transform 0.2s;
+		}
+
+		.alert-item:hover {
+			transform: translateX(2px);
+		}
+
+		.alert-item.low {
+			background: var(--warning-bg);
+			border-color: var(--warning-border);
+		}
+
+		.alert-item-ok {
+			background: var(--success-bg);
+			border-color: var(--success-border);
+		}
+
+		.alert-dot {
+			width: 8px;
+			height: 8px;
+			border-radius: 50%;
+			margin-top: 5px;
+			flex-shrink: 0;
+			position: relative;
+		}
+		/* 告警点增加扩散动�?*/
+		.alert-dot::after {
+			content: '';
+			position: absolute;
+			top: -4px; left: -4px; right: -4px; bottom: -4px;
+			border-radius: 50%;
+			background: inherit;
+			opacity: 0.4;
+			animation: pulse 1.5s infinite;
+		}
+		
+		@keyframes pulse {
+			0% { transform: scale(1); opacity: 0.4; }
+			100% { transform: scale(2); opacity: 0; }
+		}
+
+		.alert-dot.red { background: #ef4444; }
+		.alert-dot.yellow { background: #eab308; }
+		.alert-dot.green { background: #22c55e; }
+		.alert-dot.green::after { animation: none; } /* 正常状态不需要闪�?*/
+
+		.alert-title {
+			font-weight: 600;
+			font-size: 12px;
+			margin-bottom: 2px;
+		}
+		.alert-item .alert-title { color: var(--danger-text); }
+		.alert-item.low .alert-title { color: var(--warning-text); }
+		.alert-item-ok .alert-title { color: var(--success-text); }
+
+		.alert-meta {
+			font-size: 11px;
+			color: rgba(255,255,255,0.6);
+			line-height: 1.4;
+		}
+
+		/* --- Responsive --- */
+		@media (max-width: 1200px) {
+			.main-layout { grid-template-columns: 1fr 1fr; }
+			.column:nth-child(3) { grid-column: span 2; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+		}
+		
+		@media (max-width: 900px) {
+			.header { flex-direction: column; align-items: flex-start; gap: 16px; }
+			.main-layout { display: flex; flex-direction: column; }
+			.column:nth-child(3) { display: flex; flex-direction: column; }
+		}
+	</style>
+</head>
+<body>
+<!--
+Expected dashboard data shape:
+{
+  "summary": {
+    "totalParses": number,
+    "successRate": number,
+    "avgLatencyMs": number,
+    "tokensToday": number,
+    "costToday": number,
+    "activeUsersToday": number
+  },
+  "funnel": [
+    { "step": "registered", "count": number, "ratio": number },
+    { "step": "activated", "count": number, "ratio": number },
+    { "step": "uploaded", "count": number, "ratio": number },
+    { "step": "started", "count": number, "ratio": number },
+    { "step": "succeeded", "count": number, "ratio": number }
+  ],
+  "segments": [ { "segment": "high", "count": number, "desc": string }, { "segment": "light", "count": number, "desc": string }, { "segment": "churning", "count": number, "desc": string }, { "segment": "silent", "count": number, "desc": string } ],
+  "tokens": { "tokensToday": number, "avgPerRequest": number, "costToday": number, "costMtd": number, "unitCost": number, "unitCostGoal": number, "modelShare": [ { "name": "A", "share": number }, { "name": "B", "share": number } ] },
+  "activation": { "generated": number, "used": number, "usedRate": number, "newActiveToday": number, "channelSplit": string },
+  "quotaWarnings": [ { "user": string, "used": number, "remaining": number, "lastParse": string, "risk": string } ],
+  "alerts": [ { "level": "critical|warning|info", "title": string, "message": string } ],
+  "timeRange": { "label": string, "start": string, "end": string }
+}
+-->
+<div class="page-wrap">
+	<div class="dashboard">
+		<!-- Header -->
+		<header class="header">
+			<div class="header-left">
+				<div class="logo-mark">
+					<span>MO</span>
+				</div>
+				<div class="header-title-block">
+					<h1>朋友圈优�?· 运维总控看板</h1>
+					<p>用户行为 · 解析性能 · Tokens 成本 · 激活码/额度 · 异常告警</p>
+				</div>
+			</div>
+			<div class="header-controls">
+				<span class="chip">
+					<span class="icon-dot"></span>
+					实时运行�?				</span>
+				<div class="range-selector">
+					<span class="tag active">今天</span>
+					<span class="tag">�?7 �?/span>
+					<span class="tag">�?30 �?/span>
+				</div>
+				<div class="fake-input">
+					<div style="line-height: 1.2;">
+						<div class="fake-input-label">时间区间</div>
+						<div class="fake-input-value">2025-12-05 00:00 ~ 23:59</div>
+					</div>
+				</div>
+			</div>
+		</header>
+
+		<!-- KPI Cards -->
+		<section class="kpi-grid">
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>今日解析总次�?/span>
+						<span style="font-size:11px;color:var(--text-dim)" data-field="kpi-total-parses-compare">vs 昨日 +12%</span>
+					</div>
+					<div class="kpi-value" id="kpi-total-parses">184</div>
+					<div class="kpi-sub">
+						<span class="mini-bar">
+							<span class="mini-bar-fill" style="width: 70%" data-field="kpi-total-parses-fill"></span>
+						</span>
+						<span class="kpi-trend up" data-field="kpi-total-parses-trend">�?12%</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>解析成功�?/span>
+						<span style="font-size:11px;color:#86efac" data-field="kpi-success-target">目标 �?98%</span>
+					</div>
+					<div class="kpi-value" id="kpi-success-rate">98.7%</div>
+					<div class="kpi-sub">
+						<span data-field="kpi-failed-count">失败 3 �?/span>
+						<span class="kpi-trend up" data-field="kpi-success-trend">�?0.5%</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>平均解析耗时</span>
+						<span style="font-size:11px;color:var(--text-dim)" data-field="kpi-latency-p95">P95: 3.1s</span>
+					</div>
+					<div class="kpi-value" id="kpi-avg-latency">2.4s</div>
+					<div class="kpi-sub">
+						<span data-field="kpi-latency-last-hour">�?1 小时 · 2.1s</span>
+						<span class="kpi-trend down" data-field="kpi-latency-trend">�?0.3s</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>今日 Tokens 消�?/span>
+						<span style="font-size:11px;color:var(--text-dim)">�?出合�?/span>
+					</div>
+					<div class="kpi-value">128,450</div>
+					<div class="kpi-sub">
+						<span>单次均�?698</span>
+						<span class="kpi-trend up">�?8%</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>预估调用成本</span>
+						<span style="font-size:11px;color:var(--text-dim)">按当期单价估�?/span>
+					</div>
+					<div class="kpi-value">�?3.16</div>
+					<div class="kpi-sub">
+						<span>本月累计 �?26.4</span>
+						<span class="kpi-trend up">�?4.2%</span>
+					</div>
+				</div>
+			</div>
+
+			<div class="kpi-card">
+				<div class="kpi-inner">
+					<div class="kpi-label">
+						<span>今日活跃用户</span>
+						<span style="font-size:11px;color:var(--text-dim)" data-field="kpi-active-users-note">有解析行�?/span>
+					</div>
+					<div class="kpi-value" id="kpi-active-users-today">42</div>
+					<div class="kpi-sub">
+						<span data-field="kpi-active-users-breakdown">新注�?9 · 新激�?7</span>
+						<span class="kpi-trend up" data-field="kpi-active-users-trend">�?18%</span>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<!-- Main layout -->
+		<section class="main-layout">
+			<!-- Column 1: User & behavior -->
+			<div class="column">
+				<!-- User trend -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>用户增长 & 活跃趋势</span>
+								<span class="card-title-pill">用户视角</span>
+							</div>
+							<div class="card-sub">最�?7 �?· 注册 / 激�?/ 活跃 对比</div>
+						</div>
+						<span class="card-badge">按日统计</span>
+					</div>
+					<div class="card-body">
+						<div class="trend-row">
+							<div class="trend-block">
+								<div class="trend-label">
+									<span>新增注册</span>
+									<span style="font-size:11px;color:var(--text-dim)">+32 本周</span>
+								</div>
+								<div class="trend-main">
+									<span class="value">9</span>
+									<span class="trend-tag">注册</span>
+								</div>
+								<div class="trend-mini-chart"></div>
+							</div>
+							<div class="trend-block">
+								<div class="trend-label">
+									<span>新增激�?/span>
+									<span style="font-size:11px;color:var(--text-dim)">转化�?78%</span>
+								</div>
+								<div class="trend-main">
+									<span class="value">7</span>
+									<span class="trend-tag">激�?/span>
+								</div>
+								<div class="trend-mini-chart"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Funnel -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>解析行为漏斗</span>
+								<span class="card-title-pill">注册 �?解析成功</span>
+							</div>
+							<div class="card-sub">定位用户在哪一环节掉队，指导文�?& 引导优化</div>
+						</div>
+						<span class="card-badge">今日汇�?/span>
+					</div>
+					<div class="card-body">
+						<div class="funnel">
+							<div class="funnel-step" data-funnel-step="registered">
+								<div class="funnel-label">注册用户</div>
+								<div class="funnel-bar-wrap">
+									<div class="funnel-bar-fill" style="width:100%"></div>
+								</div>
+								<div class="funnel-meta" data-field="percentage">100%</div>
+							</div>
+							<div class="funnel-step">
+								<div class="funnel-label">完成激�?/div>
+								<div class="funnel-bar-wrap">
+									<div class="funnel-bar-fill" style="width:85%"></div>
+								</div>
+								<div class="funnel-meta">85%</div>
+							</div>
+							<div class="funnel-step">
+								<div class="funnel-label">上传图片</div>
+								<div class="funnel-bar-wrap">
+									<div class="funnel-bar-fill" style="width:72%"></div>
+								</div>
+								<div class="funnel-meta">72%</div>
+							</div>
+							<div class="funnel-step">
+								<div class="funnel-label">发起解析</div>
+								<div class="funnel-bar-wrap">
+									<div class="funnel-bar-fill" style="width:62%"></div>
+								</div>
+								<div class="funnel-meta">62%</div>
+							</div>
+							<div class="funnel-step">
+								<div class="funnel-label">解析成功</div>
+								<div class="funnel-bar-wrap">
+									<div class="funnel-bar-fill" style="width:55%"></div>
+								</div>
+								<div class="funnel-meta">55%</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- User segments -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>用户分层概览</span>
+								<span class="card-title-pill">�?30 �?/span>
+							</div>
+							<div class="card-sub">按解析频次和最近活跃时间进行简单分�?/div>
+						</div>
+						<span class="card-badge">用于运营动作</span>
+					</div>
+					<div class="card-body">
+						<div class="segment-list">
+							<div class="segment-item" data-segment-row>
+								<div class="segment-label">
+									<span class="segment-dot high"></span>
+									<span>高频用户</span>
+								</div>
+								<div class="segment-value">12 �?/div>
+								<div class="segment-extra">�?10 次解�?/div>
+							</div>
+							<div class="segment-item">
+								<div class="segment-label">
+									<span class="segment-dot mid"></span>
+									<span>轻量用户</span>
+								</div>
+								<div class="segment-value">26 �?/div>
+								<div class="segment-extra">1�? 次解�?/div>
+							</div>
+							<div class="segment-item">
+								<div class="segment-label">
+									<span class="segment-dot low"></span>
+									<span>即将流失</span>
+								</div>
+								<div class="segment-value">8 �?/div>
+								<div class="segment-extra">14 天未使用</div>
+							</div>
+							<div class="segment-item">
+								<div class="segment-label">
+									<span class="segment-dot sleep"></span>
+									<span>沉默用户</span>
+								</div>
+								<div class="segment-value">19 �?/div>
+								<div class="segment-extra">注册未解�?/div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Column 2: Performance & tokens -->
+			<div class="column">
+				<!-- Success & errors -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>解析成功�?& 错误类型</span>
+								<span class="card-title-pill">服务可用�?/span>
+							</div>
+							<div class="card-sub">按时间维度查看成功率波动与主要错误来�?/div>
+						</div>
+						<span class="card-badge">�?24 小时</span>
+					</div>
+					<div class="card-body">
+						<div class="chart-placeholder" data-label="趋势�?· 占位"></div>
+						<div class="chart-meta-row">
+							<div>
+								<span class="badge-pill success">成功 98.7%</span>
+								<span class="badge-pill danger" style="margin-left:4px;">错误 3 �?/span>
+							</div>
+							<div style="font-family:monospace; color:var(--text-sub)">Err: Timeout(1)</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Latency -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>解析耗时分布</span>
+								<span class="card-title-pill">性能表现</span>
+							</div>
+							<div class="card-sub">区间分布 & Top 慢请求，用于排查性能瓶颈</div>
+						</div>
+						<span class="card-badge">P50 / P95 / P99</span>
+					</div>
+					<div class="card-body">
+						<div class="chart-placeholder small" data-label="直方�?· 占位"></div>
+						<div class="chart-meta-row">
+							<div>80% 请求 &lt; 3s · 2% &gt; 10s</div>
+							<div>Top 慢请求：10.8s</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Tokens & cost -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>Tokens 消�?& 成本视图</span>
+								<span class="card-title-pill">成本控制</span>
+							</div>
+							<div class="card-sub">按日追踪 Tokens · 单次成本 · 模型/场景分布</div>
+						</div>
+						<span class="card-badge">�?7 �?/span>
+					</div>
+					<div class="card-body">
+						<div class="token-grid">
+							<div class="token-item">
+								<div class="token-label">今日 Tokens</div>
+								<div class="token-value">128,450</div>
+								<div class="token-sub">单次均�?698</div>
+							</div>
+							<div class="token-item">
+								<div class="token-label">预估今日成本</div>
+								<div class="token-value">�?3.16</div>
+								<div class="token-sub">本月累计 �?26.4</div>
+							</div>
+							<div class="token-item">
+								<div class="token-label">单次均成�?/div>
+								<div class="token-value">�?.13</div>
+								<div class="token-sub">目标 �?�?.15</div>
+							</div>
+						</div>
+						<div class="chart-placeholder small" data-label="面积�?· 占位"></div>
+						<div class="chart-meta-row">
+							<div>模型 A�?2% Tokens</div>
+							<div>模型 B�?8% Tokens</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Column 3: Activation & alerts -->
+			<div class="column">
+				<!-- Activation codes -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>激活码使用情况</span>
+								<span class="card-title-pill">转化渠道</span>
+							</div>
+							<div class="card-sub">已生�?/ 已使�?/ 渠道表现</div>
+						</div>
+						<span class="card-badge">总览 + 今日</span>
+					</div>
+					<div class="card-body">
+						<div class="activation-stat">
+							<span>累计生成激活码</span>
+							<span style="color:#fff; font-weight:600;">120 �?/span>
+						</div>
+						<div class="activation-stat">
+							<span>已使�?/span>
+							<span style="color:#fff; font-weight:600;">82 枚（68.3%�?/span>
+						</div>
+						<div class="progress-wrap">
+							<div class="progress-fill" style="width: 68.3%"></div>
+						</div>
+						<div class="chart-meta-row" style="margin-top:12px;">
+							<div>今日新激�?<span style="color:#fff;font-weight:600">7</span> �?/div>
+							<div>内测�?56% · 好友私发 32%</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Quota warning -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>用户剩余额度预警</span>
+								<span class="card-title-pill">线索</span>
+							</div>
+							<div class="card-sub">剩余解析次数过低的用�?/div>
+						</div>
+						<span class="card-badge">剩余 �?3</span>
+					</div>
+					<div class="card-body">
+						<table class="quota-table">
+							<thead>
+							<tr>
+								<th>用户</th>
+								<th>已用</th>
+								<th>剩余</th>
+								<th>最近解�?/th>
+							</tr>
+							</thead>
+							<tbody>
+							<tr>
+								<td>
+									<div class="quota-name">
+										<span class="segment-dot" style="color:#f87171;background:currentColor"></span>
+										<span>小李 · 制造业</span>
+									</div>
+								</td>
+								<td>47</td>
+								<td class="quota-remaining low">1</td>
+								<td><span class="quota-tag">10 分钟�?/span></td>
+							</tr>
+							<tr>
+								<td>
+									<div class="quota-name">
+										<span class="segment-dot" style="color:#fb923c;background:currentColor"></span>
+										<span>老周 · 咨询</span>
+									</div>
+								</td>
+								<td>15</td>
+								<td class="quota-remaining low">2</td>
+								<td><span class="quota-tag">2 小时�?/span></td>
+							</tr>
+							<tr>
+								<td>
+									<div class="quota-name">
+										<span class="segment-dot" style="color:#4ade80;background:currentColor"></span>
+										<span>阿宁 · 运营</span>
+									</div>
+								</td>
+								<td>6</td>
+								<td>9</td>
+								<td><span class="quota-tag">昨天</span></td>
+							</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+
+				<!-- Alerts -->
+				<div class="card">
+					<div class="card-header">
+						<div>
+							<div class="card-title">
+								<span>异常 & 告警</span>
+								<span class="card-title-pill">�?1 小时</span>
+							</div>
+							<div class="card-sub">按规则自动点�?/div>
+						</div>
+						<span class="card-badge">规则可配�?/span>
+					</div>
+					<div class="card-body">
+						<div class="alert-list">
+							<div class="alert-item">
+								<div class="alert-dot red"></div>
+								<div class="alert-main">
+									<div class="alert-title">模型调用 429 限流增加</div>
+									<div class="alert-meta">最�?10 分钟触发 3 �?· 建议降低并发或增加预热窗�?/div>
+								</div>
+							</div>
+							<div class="alert-item low">
+								<div class="alert-dot yellow"></div>
+								<div class="alert-main">
+									<div class="alert-title">单次 Tokens 异常偏高</div>
+									<div class="alert-meta">用户「小李」单�?Tokens �?3,240 · 建议排查</div>
+								</div>
+							</div>
+							<div class="alert-item alert-item-ok">
+								<div class="alert-dot green"></div>
+								<div class="alert-main">
+									<div class="alert-title ok">系统状态正�?/div>
+									<div class="alert-meta">�?1 小时成功�?99.1% · 平均耗时 2.1s</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
+</div>
+</body>
+</html>

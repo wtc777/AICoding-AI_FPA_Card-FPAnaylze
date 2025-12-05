@@ -1,0 +1,38 @@
+{
+  "name": "ai-chat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "NODE_ENV=development node server.js",
+    "build:css": "tailwindcss -c tailwind.config.js -i ./src/styles/tailwind.css -o ./public/css/tailwind.build.css --minify",
+    "watch:css": "tailwindcss -c tailwind.config.js -i ./src/styles/tailwind.css -o ./public/css/tailwind.build.css --watch"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "node-fetch": "^2.7.0",
+    "sharp": "^0.33.3",
+    "sqlite3": "^5.1.7"
+  },
+  "description": "基于 DashScope（通义千问）的朋友圈文案/卡片优化小工具。后端使用 Express + SQLite 管理用户、额度与激活码，前端是静态页面（Tailwind UI）支持图片识别、文案润色以及管理后台。",
+  "main": "server.js",
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.15"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wtc777/AICoding-Moments_Optimizer.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/wtc777/AICoding-Moments_Optimizer/issues"
+  },
+  "homepage": "https://github.com/wtc777/AICoding-Moments_Optimizer#readme"
+}

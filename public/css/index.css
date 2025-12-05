@@ -1,0 +1,76 @@
+.landing {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #0f172a;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+.landing__bg {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(79, 123, 255, 0.12), transparent 35%),
+    radial-gradient(circle at 80% 10%, rgba(109, 213, 250, 0.16), transparent 30%),
+    #f7f9fc;
+  pointer-events: none;
+}
+
+.landing__main {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  padding: 48px 24px;
+}
+
+.landing__content {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 24px;
+  box-shadow: 0 20px 60px rgba(79, 123, 255, 0.15);
+  padding: 32px;
+  text-align: center;
+}
+
+.landing__eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #3b82f6;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.landing__title {
+  font-size: 28px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.landing__subtitle {
+  font-size: 14px;
+  color: #4b5563;
+  margin-bottom: 16px;
+}
+
+.landing__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border-radius: 16px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(90deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(79, 123, 255, 0.25);
+}
+
+.landing__button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 36px rgba(79, 123, 255, 0.3);
+}

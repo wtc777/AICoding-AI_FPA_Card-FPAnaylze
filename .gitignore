@@ -1,0 +1,28 @@
+# Node dependencies and build artifacts
+node_modules/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Environment and local configs
+.env
+.env.*
+!/.env.example
+.env.local
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Optional build/coverage outputs (if generated)
+dist/
+coverage/
+
+# Scenario prompts (use examples instead)
+public/prompts/CARD_SCENARIO.txt
+public/prompts/MOMENT_SCENARIO.txt
+public/uploads/
+
+# Local persistent data (SQLite etc.)
+data/

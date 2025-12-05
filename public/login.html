@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="Log in or create an account to start optimizing your moments." data-i18n="login.metaDescription" data-i18n-attr="content" />
+  <title data-i18n="login.pageTitle">Login / Register - Moments Optimizer</title>
+  <link rel="stylesheet" href="/css/tailwind.build.css" />
+  <style>
+    body {
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: radial-gradient(circle at 20% 20%, rgba(79,123,255,0.12), transparent 35%),
+                  radial-gradient(circle at 80% 10%, rgba(109,213,250,0.16), transparent 30%),
+                  #F7F9FC;
+      color: #0F172A;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="relative min-h-screen flex items-center justify-center px-4 py-10">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-16 -top-10 w-80 h-80 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-96 h-96 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative w-full max-w-4xl">
+      <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+        <div>
+          <p class="text-sm text-blue-500 font-semibold tracking-wide uppercase" data-i18n="login.tagline">Moments Optimizer</p>
+          <h1 class="text-3xl sm:text-4xl font-bold text-gray-900" data-i18n="login.title">Login / Register</h1>
+          <p class="text-gray-500 mt-1" data-i18n="login.subtitle">Use your phone number and password to log in, or create a new account to enter the optimizer.</p>
+        </div>
+      </header>
+
+      <section class="glass rounded-3xl shadow-sm border border-gray-100 p-6 sm:p-8">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <div>
+            <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]" data-i18n="login.accountLabel">Account</p>
+          </div>
+          <div class="inline-flex items-center gap-2 p-1 rounded-full bg-gray-50 border border-gray-100">
+            <button data-auth-tab="login" class="auth-tab px-4 py-2 rounded-full text-sm font-semibold text-blue-600 bg-white shadow-sm border border-blue-100">
+              <span data-i18n="login.tabLogin">Login</span>
+            </button>
+            <button data-auth-tab="register" class="auth-tab px-4 py-2 rounded-full text-sm font-semibold text-gray-500 hover:text-blue-600">
+              <span data-i18n="login.tabRegister">Register</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="max-w-2xl">
+          <form id="loginForm" class="auth-panel space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.phoneLabel">Phone</label>
+              <input name="phone" type="tel" inputmode="numeric" maxlength="11" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="Enter 11-digit phone number" data-i18n="login.phonePlaceholder" data-i18n-attr="placeholder" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.passwordLabel">Password</label>
+              <input name="password" type="password" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="Enter your password" data-i18n="login.passwordPlaceholder" data-i18n-attr="placeholder" required />
+            </div>
+            <button type="submit" class="relative w-full overflow-hidden rounded-2xl py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-blue-500/40 active:scale-[0.98]">
+              <div class="absolute inset-0 bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA]"></div>
+              <span class="relative flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
+                <span data-i18n="login.submitLogin">Sign in</span>
+              </span>
+            </button>
+          </form>
+
+          <form id="registerForm" class="auth-panel space-y-4 hidden mt-6">
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.phoneLabel">Phone</label>
+                <input name="phone" type="tel" inputmode="numeric" maxlength="11" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="Enter 11-digit phone number" data-i18n="login.phonePlaceholder" data-i18n-attr="placeholder" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.nicknameLabel">Nickname</label>
+                <input name="nickname" type="text" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="Display nickname" data-i18n="login.nicknamePlaceholder" data-i18n-attr="placeholder" required />
+              </div>
+            </div>
+            <p class="text-sm text-gray-500" data-i18n="login.accountTip">Phone number is the credential. Password must be at least 6 characters.</p>
+            <div class="grid md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.passwordLabel">Password</label>
+                <input name="password" type="password" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="At least 6 characters" data-i18n="login.passwordRegisterPlaceholder" data-i18n-attr="placeholder" required />
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1" data-i18n="login.passwordConfirmLabel">Confirm Password</label>
+                <input name="password_confirm" type="password" class="w-full rounded-2xl border border-gray-200 bg-white/70 focus:ring-2 focus:ring-blue-200 focus:border-blue-300 text-sm text-gray-700 px-4 py-3 placeholder:text-gray-400" placeholder="Re-enter password" data-i18n="login.passwordConfirmPlaceholder" data-i18n-attr="placeholder" required />
+              </div>
+            </div>
+            <button type="submit" class="relative w-full overflow-hidden rounded-2xl py-3 font-semibold text-white shadow-lg shadow-blue-500/30 transition-all duration-300 hover:shadow-blue-500/40 active:scale-[0.98]">
+              <div class="absolute inset-0 bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA]"></div>
+              <span class="relative flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v4m0 0h4m-4 0H8m4 0v4" /></svg>
+                <span data-i18n="login.submitRegister">Create account</span>
+              </span>
+            </button>
+          </form>
+
+          <p id="authMessage" class="mt-3 text-sm text-gray-500"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="/utils/i18n.js"></script>
+  <script>
+    const authTabs = document.querySelectorAll('[data-auth-tab]');
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const authPanels = { login: loginForm, register: registerForm };
+    const authMessage = document.getElementById('authMessage');
+
+    function validatePhone(phone) {
+      return /^\d{11}$/.test((phone || '').trim());
+    }
+
+    function showAuthMessage(text, tone = 'info') {
+      const toneMap = {
+        info: 'text-gray-600',
+        success: 'text-green-600',
+        error: 'text-rose-600'
+      };
+      authMessage.textContent = text;
+      authMessage.className = `mt-3 text-sm ${toneMap[tone] || toneMap.info}`;
+    }
+
+    function switchAuth(mode) {
+      authTabs.forEach((btn) => {
+        const isActive = btn.dataset.authTab === mode;
+        btn.classList.toggle('bg-white', isActive);
+        btn.classList.toggle('shadow-sm', isActive);
+        btn.classList.toggle('border', isActive);
+        btn.classList.toggle('border-blue-100', isActive);
+        btn.classList.toggle('text-blue-600', isActive);
+        btn.classList.toggle('text-gray-500', !isActive);
+      });
+      Object.entries(authPanels).forEach(([key, panel]) => {
+        if (!panel) return;
+        panel.classList.toggle('hidden', key !== mode);
+      });
+      showAuthMessage('', 'info');
+    }
+
+    async function authRequest(path, payload) {
+      const res = await fetch(path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload || {})
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data?.error || i18n.t('common.requestFailed'));
+      }
+      return data;
+    }
+
+    function persistAuth(token, user) {
+      localStorage.setItem('momentsAuth', JSON.stringify({ token, user }));
+    }
+
+    function applyI18n() {
+      i18n.applyTranslations();
+      document.documentElement.setAttribute('lang', i18n.getLanguage());
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const formData = new FormData(loginForm);
+      const phone = formData.get('phone');
+      const password = formData.get('password');
+      if (!validatePhone(phone)) {
+        showAuthMessage(i18n.t('login.invalidPhone'), 'error');
+        return;
+      }
+      if (!password) {
+        showAuthMessage(i18n.t('login.needPassword'), 'error');
+        return;
+      }
+      try {
+        showAuthMessage(i18n.t('login.signingIn'), 'info');
+        const data = await authRequest('/auth/login', { phone, password });
+        persistAuth(data.token, data.user);
+        showAuthMessage(i18n.t('login.loginSuccess'), 'success');
+        setTimeout(() => (window.location.href = '/parse.html'), 400);
+      } catch (err) {
+        showAuthMessage(err.message || i18n.t('login.loginFailed'), 'error');
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const formData = new FormData(registerForm);
+      const phone = formData.get('phone');
+      const nickname = formData.get('nickname');
+      const password = formData.get('password');
+      const passwordConfirm = formData.get('password_confirm');
+      if (!validatePhone(phone)) {
+        showAuthMessage(i18n.t('login.invalidPhone'), 'error');
+        return;
+      }
+      if (!nickname) {
+        showAuthMessage(i18n.t('login.needNickname'), 'error');
+        return;
+      }
+      if (!password || password.length < 6) {
+        showAuthMessage(i18n.t('login.passwordTooShort'), 'error');
+        return;
+      }
+      if (password !== passwordConfirm) {
+        showAuthMessage(i18n.t('login.passwordConfirmMismatch'), 'error');
+        return;
+      }
+      try {
+        showAuthMessage(i18n.t('login.registering'), 'info');
+        const data = await authRequest('/auth/register', { phone, nickname, password, password_confirm: passwordConfirm });
+        persistAuth(data.token, data.user);
+        showAuthMessage(i18n.t('login.registerSuccess'), 'success');
+        setTimeout(() => (window.location.href = '/parse.html'), 400);
+      } catch (err) {
+        showAuthMessage(err.message || i18n.t('login.registerFailed'), 'error');
+      }
+    }
+
+    authTabs.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.dataset.authTab || 'login';
+        switchAuth(mode);
+      });
+    });
+    if (loginForm) {
+      loginForm.addEventListener('submit', handleLogin);
+    }
+    if (registerForm) {
+      registerForm.addEventListener('submit', handleRegister);
+    }
+    (async () => {
+      await i18n.initTranslations();
+      applyI18n();
+      switchAuth('login');
+    })();
+  </script>
+</body>
+</html>

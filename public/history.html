@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="History - Moments Optimizer" data-i18n="history.metaDescription" data-i18n-attr="content" />
+  <title data-i18n="history.pageTitle">History - Moments Optimizer</title>
+  <link rel="stylesheet" href="/css/tailwind.build.css" />
+  <link rel="stylesheet" href="/css/common.css" />
+  <link rel="stylesheet" href="/css/history.css" />
+  <script src="/utils/i18n.js" defer></script>
+  <script src="/js/common.js" defer></script>
+  <script src="/js/history.js" defer></script>
+</head>
+<body class="min-h-screen">
+  <div class="relative min-h-screen">
+    <div class="absolute inset-0 overflow-hidden pointer-events-none">
+      <div class="absolute -left-16 -top-10 w-72 h-72 bg-gradient-to-br from-blue-200/50 to-blue-100/40 blur-3xl"></div>
+      <div class="absolute -right-10 10 w-80 h-80 bg-gradient-to-br from-cyan-200/50 to-blue-50/50 blur-3xl"></div>
+    </div>
+
+    <main class="relative max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <header class="flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs font-semibold text-blue-500 uppercase tracking-[0.2em]" data-i18n="history.tagline">History</p>
+          <h1 class="text-2xl font-bold text-gray-900" data-i18n="history.title">Analysis history</h1>
+          <p class="text-sm text-gray-500" data-i18n="history.subtitle">Review your recent analyses and tokens usage.</p>
+        </div>
+        <div class="flex gap-2">
+          <a href="/parse.html" class="px-3 py-2 rounded-full text-sm font-semibold text-blue-600 bg-white border border-blue-100 shadow-sm hover:border-blue-200" data-i18n="history.backToParse">Back to Parse</a>
+          <button id="languageToggle" class="px-3 py-2 rounded-full text-sm font-semibold text-slate-700 bg-white border border-slate-200 shadow-sm hover:border-blue-200 hover:text-blue-600 transition">
+            Switch
+          </button>
+        </div>
+      </header>
+
+      <section class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div class="grid md:grid-cols-3 gap-3">
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-600 mb-1" data-i18n="history.startDate">Start date</label>
+            <input id="startDate" type="date" class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" />
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-600 mb-1" data-i18n="history.endDate">End date</label>
+            <input id="endDate" type="date" class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" />
+          </div>
+          <div class="flex flex-col">
+            <label class="text-xs font-semibold text-gray-600 mb-1" data-i18n="history.keyword">Keyword</label>
+            <input id="keyword" type="text" class="rounded-xl border border-gray-200 bg-white/80 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-300" placeholder="Search text" data-i18n="history.keywordPlaceholder" data-i18n-attr="placeholder" />
+          </div>
+        </div>
+        <div class="flex gap-2">
+          <button id="filterBtn" class="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#4F7BFF] to-[#6DD5FA] shadow-sm hover:shadow-md transition" data-i18n="history.applyFilter">Apply</button>
+          <button id="resetBtn" class="px-4 py-2 rounded-xl text-sm font-semibold text-gray-700 bg-white border border-gray-200 hover:border-blue-200 hover:text-blue-600 transition" data-i18n="history.resetFilter">Reset</button>
+        </div>
+      </section>
+
+      <section class="glass rounded-2xl p-5 shadow-sm border border-gray-100 space-y-4">
+        <div id="historyList" class="space-y-3"></div>
+        <div id="historyEmpty" class="hidden text-center text-gray-400 text-sm" data-i18n="history.empty">No history yet.</div>
+        <div class="flex items-center justify-between" id="pager">
+          <button id="prevPage" class="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white hover:border-blue-200 hover:text-blue-600 transition" data-i18n="history.prev">Prev</button>
+          <span id="pageInfo" class="text-sm text-gray-600"></span>
+          <button id="nextPage" class="px-3 py-2 rounded-lg border border-gray-200 text-sm text-gray-700 bg-white hover:border-blue-200 hover:text-blue-600 transition" data-i18n="history.next">Next</button>
+        </div>
+      </section>
+    </main>
+
+    <div id="detailModal" class="fixed inset-0 z-40 hidden bg-black/50 backdrop-blur-sm flex items-center justify-center px-4">
+      <div class="w-full max-w-3xl bg-white rounded-2xl shadow-2xl border border-gray-100 p-6 space-y-4 relative">
+        <button id="closeDetail" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+        </button>
+        <h3 class="text-lg font-semibold text-gray-900" data-i18n="history.detailTitle">Detail</h3>
+        <div class="grid md:grid-cols-2 gap-4 text-sm text-gray-700">
+          <div><span class="text-gray-500" data-i18n="history.time">Time</span>: <span id="detailTime">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.duration">Duration</span>: <span id="detailDuration">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.tokens">Tokens</span>: <span id="detailTokens">--</span></div>
+          <div><span class="text-gray-500" data-i18n="history.model">Model</span>: <span id="detailModel">--</span></div>
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.inputFull">Input</p>
+          <pre id="detailInput" class="rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm text-gray-800 whitespace-pre-wrap max-h-40 overflow-auto"></pre>
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.outputFull">Output</p>
+          <pre id="detailOutput" class="rounded-xl border border-gray-100 bg-gray-50 p-3 text-sm text-gray-800 whitespace-pre-wrap max-h-48 overflow-auto"></pre>
+        </div>
+        <div class="space-y-2">
+          <p class="text-xs font-semibold text-gray-500" data-i18n="history.image">Image</p>
+          <div id="detailImageWrapper" class="rounded-xl border border-gray-100 bg-gray-50 p-2 flex justify-center">
+            <img id="detailImage" alt="history image" class="max-h-64 object-contain" />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
