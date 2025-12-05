@@ -37,6 +37,13 @@ app.use(
     limit: '10mb'
   })
 );
+app.use((err, req, res, next) => {
+  if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    console.error('JSON parse error:', err.message);
+    return res.status(400).json({ error: 'Invalid request body.' });
+  }
+  next(err);
+});
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/locales', express.static(path.join(__dirname, 'locales')));
 
@@ -678,6 +685,10 @@ app.post('/api/chat/text', authMiddleware, async (req, res) => {
       }
     ];
     const reply = await callDashScopeChat(TEXT_MODEL, messages);
+    const replyText = typeof reply === 'string' ? reply.trim() : '';
+    if (!replyText) {
+      return res.status(502).json({ error: 'Analysis failed: empty response.' });
+    }
     const now = new Date().toISOString();
     await runInTransaction(async () => {
       const updateRes = await dbRun(
@@ -693,7 +704,7 @@ app.post('/api/chat/text', authMiddleware, async (req, res) => {
       );
     });
     const refreshed = await dbGet('SELECT credits FROM users WHERE id = ?', [user.id]);
-    res.json({ text: reply, credits: refreshed?.credits ?? user.credits - 1 });
+    res.json({ text: replyText, credits: refreshed?.credits ?? user.credits - 1 });
   } catch (err) {
     if (err.message === 'INSUFFICIENT_CREDITS') {
       return res
@@ -766,11 +777,15 @@ app.post('/api/chat/image', authMiddleware, async (req, res) => {
       }
     ];
     const imageAnalysis = await callDashScopeChat(VISION_MODEL, visionMessages);
+    const parsedImageAnalysis = typeof imageAnalysis === 'string' ? imageAnalysis.trim() : '';
+    if (!parsedImageAnalysis) {
+      return res.status(502).json({ error: 'Image analysis failed: empty response.' });
+    }
 
     const combinedPrompt = [
       'Below is the user text and the image analysis result; provide a combined response:',
       `User text: ${text}`,
-      `Image analysis: ${imageAnalysis}`
+      `Image analysis: ${parsedImageAnalysis}`
     ].join('\n');
 
     const textMessages = [
@@ -792,6 +807,10 @@ app.post('/api/chat/image', authMiddleware, async (req, res) => {
       }
     ];
     const finalReply = await callDashScopeChat(TEXT_MODEL, textMessages);
+    const replyText = typeof finalReply === 'string' ? finalReply.trim() : '';
+    if (!replyText) {
+      return res.status(502).json({ error: 'Analysis failed: empty response.' });
+    }
     const now = new Date().toISOString();
     await runInTransaction(async () => {
       const updateRes = await dbRun(
@@ -813,7 +832,11 @@ app.post('/api/chat/image', authMiddleware, async (req, res) => {
       );
     });
     const refreshed = await dbGet('SELECT credits FROM users WHERE id = ?', [user.id]);
-    res.json({ text: finalReply, imageAnalysis, credits: refreshed?.credits ?? user.credits - 1 });
+    res.json({
+      text: replyText,
+      imageAnalysis: parsedImageAnalysis,
+      credits: refreshed?.credits ?? user.credits - 1
+    });
   } catch (err) {
     console.error('Image chat error:', err.message);
     res.status(502).json({ error: err.message });
@@ -1021,6 +1044,18 @@ app.post('/api/profile/update', authMiddleware, async (req, res) => {
 initDb();
 migrateSchema().catch((err) => {
   console.error('Schema migration failed:', err.message);
+});
+
+app.use((err, req, res, next) => {
+  console.error('Unhandled error:', err);
+  if (res.headersSent) {
+    return next(err);
+  }
+  const status = err.status || 500;
+  if (req.path.startsWith('/api/') || req.path.startsWith('/auth/')) {
+    return res.status(status).json({ error: err.message || 'Internal server error.' });
+  }
+  res.status(status).send('Internal Server Error');
 });
 
 app.listen(PORT, () => {
